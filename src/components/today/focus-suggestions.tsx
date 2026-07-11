@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PriorityBadge } from "@/components/priority-badge";
 import { useAppStore } from "@/store/useAppStore";
 import { getFocusSuggestions } from "@/lib/priority";
-import { todayISO } from "@/lib/date";
+import { formatDateJP, isOverdue, todayISO } from "@/lib/date";
 
 export function FocusSuggestions() {
   const tasks = useAppStore((s) => s.tasks);
@@ -28,7 +28,7 @@ export function FocusSuggestions() {
           今やるべき候補
         </CardTitle>
         <p className="text-xs text-muted-foreground">
-          目標・プロジェクトの優先度から逆算した、日付未設定のタスクです。好きなタスクに流されないための道しるべ。
+          目標・プロジェクトの優先度から逆算したタスクと、予定日を過ぎても未完了のタスクです。好きなタスクに流されないための道しるべ。
         </p>
       </CardHeader>
       <CardContent className="space-y-2">
@@ -41,6 +41,11 @@ export function FocusSuggestions() {
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span className="text-sm">{t.title}</span>
                   <PriorityBadge priority={t.priority} />
+                  {t.scheduledDate && isOverdue(t.scheduledDate) && (
+                    <span className="text-xs font-medium text-red-600 dark:text-red-400">
+                      予定 {formatDateJP(t.scheduledDate)}（未完了）
+                    </span>
+                  )}
                 </div>
                 {(goal || project) && (
                   <p className="mt-0.5 text-xs text-muted-foreground">

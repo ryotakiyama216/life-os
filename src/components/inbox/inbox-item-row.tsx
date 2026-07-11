@@ -29,21 +29,33 @@ export function InboxItemRow({ item }: { item: InboxItem }) {
   const addNote = useAppStore((s) => s.addNote);
   const addTask = useAppStore((s) => s.addTask);
 
-  function finish() {
-    removeInboxItem(item.id);
+  async function finish() {
+    try {
+      await removeInboxItem(item.id);
+    } catch {
+      // ストア側でtoast.errorを表示済み
+    }
   }
 
-  function makeSomeday() {
-    addTask({ title: item.content, status: "someday" });
-    toast.success("「いつか/たぶん」リストへ移動しました");
-    finish();
+  async function makeSomeday() {
+    try {
+      await addTask({ title: item.content, status: "someday" });
+      toast.success("「いつか/たぶん」リストへ移動しました");
+      await finish();
+    } catch {
+      // ストア側でtoast.errorを表示済み
+    }
   }
 
-  function makeNote() {
-    const firstLine = item.content.split("\n")[0].slice(0, 60) || "無題のメモ";
-    addNote({ title: firstLine, content: item.content, type: "note" });
-    toast.success("ページ・メモに追加しました");
-    finish();
+  async function makeNote() {
+    try {
+      const firstLine = item.content.split("\n")[0].slice(0, 60) || "無題のメモ";
+      await addNote({ title: firstLine, content: item.content, type: "note" });
+      toast.success("ページ・メモに追加しました");
+      await finish();
+    } catch {
+      // ストア側でtoast.errorを表示済み
+    }
   }
 
   return (
@@ -81,9 +93,13 @@ export function InboxItemRow({ item }: { item: InboxItem }) {
           variant="ghost"
           size="icon"
           className="size-8 text-muted-foreground"
-          onClick={() => {
-            removeInboxItem(item.id);
-            toast("削除しました");
+          onClick={async () => {
+            try {
+              await removeInboxItem(item.id);
+              toast("削除しました");
+            } catch {
+              // ストア側でtoast.errorを表示済み
+            }
           }}
         >
           <Trash2 className="size-4" />

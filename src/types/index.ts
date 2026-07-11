@@ -34,6 +34,7 @@ export interface Project extends BaseEntity {
   status: ProjectStatus;
   priority: Priority;
   targetDate?: string; // ISO date
+  completedAt?: string; // ISO datetime、statusが'done'になった時刻（振り返り画面で使用）
 }
 
 export interface Task extends BaseEntity {

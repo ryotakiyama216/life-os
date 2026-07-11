@@ -4,6 +4,7 @@ import {
   isToday as fnsIsToday,
   parseISO,
 } from "date-fns";
+import { ja } from "date-fns/locale";
 
 export function todayISO(): string {
   return format(new Date(), "yyyy-MM-dd");
@@ -32,6 +33,11 @@ export function daysFromToday(dateStr: string): number {
 export function formatDateJP(dateStr?: string): string {
   if (!dateStr) return "";
   return format(parseISO(dateStr), "M月d日");
+}
+
+export function formatDateFullJP(dateStr?: string): string {
+  if (!dateStr) return "";
+  return format(parseISO(dateStr), "yyyy年M月d日（E）", { locale: ja });
 }
 
 export function formatDateTimeJP(dateStr?: string): string {

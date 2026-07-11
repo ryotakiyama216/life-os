@@ -147,7 +147,9 @@ export default function TasksPage() {
               <TableHead>状態</TableHead>
               <TableHead>優先度</TableHead>
               <TableHead>期限</TableHead>
-              <TableHead>目標/プロジェクト</TableHead>
+              <TableHead>予定日</TableHead>
+              <TableHead>目標</TableHead>
+              <TableHead>プロジェクト</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>

@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { addDays, format } from "date-fns";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { MoreHorizontal, Pencil, Trash2, CalendarPlus, CalendarClock } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -13,11 +14,11 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { PriorityBadge } from "@/components/priority-badge";
-import { TaskFormDialog } from "@/components/task/task-form-dialog";
 import { useAppStore } from "@/store/useAppStore";
 import type { Task } from "@/types";
 import { cn } from "@/lib/utils";
-import { formatDateJP, isOverdue, overdueLabel, todayISO } from "@/lib/date";
+import { formatDateJP, isOverdue, isToday, overdueLabel, todayISO } from "@/lib/date";
+import { getPostponeToTomorrowPatch } from "@/lib/priority";
 import { toast } from "sonner";
 
 export function TaskItem({
@@ -27,7 +28,7 @@ export function TaskItem({
   task: Task;
   showProjectGoal?: boolean;
 }) {
-  const [editOpen, setEditOpen] = React.useState(false);
+  const router = useRouter();
   const completeTask = useAppStore((s) => s.completeTask);
   const updateTask = useAppStore((s) => s.updateTask);
   const removeTask = useAppStore((s) => s.removeTask);
@@ -37,6 +38,7 @@ export function TaskItem({
   );
 
   const overdue = task.status !== "done" && isOverdue(task.dueDate);
+  const scheduledToday = isToday(task.scheduledDate);
   const done = task.status === "done";
 
   return (
@@ -60,14 +62,31 @@ export function TaskItem({
       />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className={cn("text-sm", done && "text-muted-foreground line-through")}>
+          <Link
+            href={`/tasks/${task.id}`}
+            className={cn(
+              "text-sm hover:underline",
+              done && "text-muted-foreground line-through"
+            )}
+          >
             {task.title}
-          </span>
+          </Link>
           <PriorityBadge priority={task.priority} />
           {task.dueDate && (
             <span className={cn("text-xs", overdue ? "font-medium text-red-600 dark:text-red-400" : "text-muted-foreground")}>
               期限 {formatDateJP(task.dueDate)}
               {overdue && `（${overdueLabel(task.dueDate)}）`}
+            </span>
+          )}
+          {task.scheduledDate && (
+            <span
+              className={cn(
+                "text-xs",
+                scheduledToday ? "font-medium text-blue-600 dark:text-blue-400" : "text-muted-foreground"
+              )}
+            >
+              予定 {formatDateJP(task.scheduledDate)}
+              {scheduledToday && "（今日）"}
             </span>
           )}
           {showProjectGoal && (project || goal) && (
@@ -93,17 +112,13 @@ export function TaskItem({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+          <DropdownMenuItem onSelect={() => router.push(`/tasks/${task.id}`)}>
             <Pencil className="size-4" /> 編集
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => updateTask(task.id, { scheduledDate: todayISO() })}>
             <CalendarPlus className="size-4" /> 今日の予定にする
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onSelect={() =>
-              updateTask(task.id, { dueDate: format(addDays(new Date(), 1), "yyyy-MM-dd") })
-            }
-          >
+          <DropdownMenuItem onSelect={() => updateTask(task.id, getPostponeToTomorrowPatch(task))}>
             <CalendarClock className="size-4" /> 明日に延期
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -118,7 +133,6 @@ export function TaskItem({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <TaskFormDialog task={task} open={editOpen} onOpenChange={setEditOpen} />
     </div>
   );
 }

@@ -13,9 +13,13 @@ export default function NotesPage() {
   const notes = useAppStore((s) => s.notes);
   const addNote = useAppStore((s) => s.addNote);
 
-  function handleCreate() {
-    const note = addNote({ title: "無題のメモ", content: "" });
-    router.push(`/notes/${note.id}`);
+  async function handleCreate() {
+    try {
+      const note = await addNote({ title: "無題のメモ", content: "" });
+      router.push(`/notes/${note.id}`);
+    } catch {
+      // ストア側でtoast.errorを表示済み
+    }
   }
 
   return (

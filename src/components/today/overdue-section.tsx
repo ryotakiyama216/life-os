@@ -3,7 +3,7 @@
 import { AlertTriangle } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { getOverdueTasks } from "@/lib/priority";
-import { TaskItem } from "@/components/task/task-item";
+import { OverdueTaskItem } from "@/components/task/overdue-task-item";
 
 export function OverdueSection() {
   const tasks = useAppStore((s) => s.tasks);
@@ -19,7 +19,7 @@ export function OverdueSection() {
       </h2>
       <div className="space-y-2">
         {overdue.map((t) => (
-          <TaskItem key={t.id} task={t} showProjectGoal />
+          <OverdueTaskItem key={t.id} task={t} />
         ))}
       </div>
     </section>

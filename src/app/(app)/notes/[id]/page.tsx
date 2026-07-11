@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/empty-state";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppStore } from "@/store/useAppStore";
+import { useDebouncedCallback } from "@/lib/use-debounced-callback";
 
 const NONE = "__none__";
 
@@ -22,11 +23,20 @@ export default function NoteDetailPage({ params }: { params: { id: string } }) {
   const updateNote = useAppStore((s) => s.updateNote);
   const removeNote = useAppStore((s) => s.removeNote);
 
+  const [title, setTitle] = React.useState(note?.title ?? "");
+  const [content, setContent] = React.useState(note?.content ?? "");
   const [tagsInput, setTagsInput] = React.useState(note?.tags.join(", ") ?? "");
 
   React.useEffect(() => {
+    setTitle(note?.title ?? "");
+    setContent(note?.content ?? "");
     setTagsInput(note?.tags.join(", ") ?? "");
   }, [note?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const debouncedUpdateNote = useDebouncedCallback((patch: { title?: string; content?: string }) => {
+    if (!note) return;
+    updateNote(note.id, patch);
+  }, 600);
 
   if (!note) {
     return <EmptyState icon={FileText} title="メモが見つかりません" />;
@@ -43,10 +53,14 @@ export default function NoteDetailPage({ params }: { params: { id: string } }) {
           variant="outline"
           size="sm"
           className="gap-1.5 text-red-600 hover:text-red-600"
-          onClick={() => {
-            removeNote(note.id);
-            toast("メモを削除しました");
-            router.push("/notes");
+          onClick={async () => {
+            try {
+              await removeNote(note.id);
+              toast("メモを削除しました");
+              router.push("/notes");
+            } catch {
+              // ストア側でtoast.errorを表示済み
+            }
           }}
         >
           <Trash2 className="size-3.5" />
@@ -55,8 +69,11 @@ export default function NoteDetailPage({ params }: { params: { id: string } }) {
       </div>
 
       <Input
-        value={note.title}
-        onChange={(e) => updateNote(note.id, { title: e.target.value })}
+        value={title}
+        onChange={(e) => {
+          setTitle(e.target.value);
+          debouncedUpdateNote({ title: e.target.value });
+        }}
         placeholder="無題のメモ"
         className="border-none px-0 text-xl font-semibold tracking-tight shadow-none focus-visible:ring-0"
       />
@@ -119,8 +136,11 @@ export default function NoteDetailPage({ params }: { params: { id: string } }) {
       </div>
 
       <MarkdownEditor
-        value={note.content}
-        onChange={(v) => updateNote(note.id, { content: v })}
+        value={content}
+        onChange={(v) => {
+          setContent(v);
+          debouncedUpdateNote({ content: v });
+        }}
         minRows={16}
       />
     </div>

@@ -28,6 +28,9 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# 機密情報（DBパスワード等）。絶対にコミットしない
+DATABASE_CREDENTIALS.md
+
 # vercel
 .vercel
 

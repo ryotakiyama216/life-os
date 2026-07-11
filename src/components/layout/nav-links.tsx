@@ -6,9 +6,12 @@ import {
   CalendarCheck,
   FileText,
   FolderKanban,
+  History,
   Inbox,
   ListTodo,
   Repeat,
+  Search,
+  Settings,
   Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,8 +23,11 @@ export const NAV_ITEMS = [
   { href: "/goals", label: "目標", icon: Target },
   { href: "/projects", label: "プロジェクト", icon: FolderKanban },
   { href: "/tasks", label: "タスク", icon: ListTodo },
+  { href: "/search", label: "検索", icon: Search },
   { href: "/habits", label: "習慣", icon: Repeat },
   { href: "/notes", label: "ページ・メモ", icon: FileText },
+  { href: "/review", label: "振り返り", icon: History },
+  { href: "/settings", label: "設定", icon: Settings },
 ] as const;
 
 export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {

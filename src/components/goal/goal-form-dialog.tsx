@@ -58,24 +58,33 @@ export function GoalFormDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, goal]);
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!title.trim()) return;
-    if (isEdit) {
-      updateGoal(goal.id, {
-        title: title.trim(),
-        description,
-        status,
-        priority,
-        targetDate: targetDate || undefined,
-      });
-      toast.success("目標を更新しました");
-      setOpen(false);
-      onSaved?.(goal);
-    } else {
-      const created = addGoal({ title: title.trim(), description, priority, targetDate: targetDate || undefined });
-      toast.success("目標を追加しました");
-      setOpen(false);
-      onSaved?.(created);
+    try {
+      if (isEdit) {
+        await updateGoal(goal.id, {
+          title: title.trim(),
+          description,
+          status,
+          priority,
+          targetDate: targetDate || undefined,
+        });
+        toast.success("目標を更新しました");
+        setOpen(false);
+        onSaved?.(goal);
+      } else {
+        const created = await addGoal({
+          title: title.trim(),
+          description,
+          priority,
+          targetDate: targetDate || undefined,
+        });
+        toast.success("目標を追加しました");
+        setOpen(false);
+        onSaved?.(created);
+      }
+    } catch {
+      // ストア側でtoast.errorを表示済み
     }
   }
 

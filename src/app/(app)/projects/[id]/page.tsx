@@ -69,10 +69,14 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
               variant="outline"
               size="sm"
               className="gap-1.5 text-red-600 hover:text-red-600"
-              onClick={() => {
-                removeProject(project.id);
-                toast("プロジェクトを削除しました");
-                router.push("/projects");
+              onClick={async () => {
+                try {
+                  await removeProject(project.id);
+                  toast("プロジェクトを削除しました");
+                  router.push("/projects");
+                } catch {
+                  // ストア側でtoast.errorを表示済み
+                }
               }}
             >
               <Trash2 className="size-3.5" />

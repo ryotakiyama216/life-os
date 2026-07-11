@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { HabitFormDialog } from "@/components/habit/habit-form-dialog";
 import { HabitRow } from "@/components/habit/habit-row";
 import { useAppStore } from "@/store/useAppStore";
+import { sortHabitsByTime } from "@/lib/habit";
 
 export default function HabitsPage() {
-  const habits = useAppStore((s) => s.habits);
+  const habits = sortHabitsByTime(useAppStore((s) => s.habits));
 
   return (
     <div>

@@ -66,10 +66,14 @@ export default function GoalDetailPage({ params }: { params: { id: string } }) {
               variant="outline"
               size="sm"
               className="gap-1.5 text-red-600 hover:text-red-600"
-              onClick={() => {
-                removeGoal(goal.id);
-                toast("目標を削除しました");
-                router.push("/goals");
+              onClick={async () => {
+                try {
+                  await removeGoal(goal.id);
+                  toast("目標を削除しました");
+                  router.push("/goals");
+                } catch {
+                  // ストア側でtoast.errorを表示済み
+                }
               }}
             >
               <Trash2 className="size-3.5" />

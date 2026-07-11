@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Menu, Moon, Sun } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Menu, Moon, LogOut, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -9,12 +10,21 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { QuickCaptureDialog } from "@/components/quick-capture-dialog";
 import { NavLinks } from "@/components/layout/nav-links";
+import { createClient } from "@/lib/supabase/client";
 
 export function Topbar() {
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <header className="flex h-14 items-center justify-between border-b px-4 md:px-6">
@@ -49,6 +59,9 @@ export function Topbar() {
           ) : (
             <Moon className="size-4" />
           )}
+        </Button>
+        <Button size="icon" variant="ghost" aria-label="ログアウト" onClick={handleSignOut}>
+          <LogOut className="size-4" />
         </Button>
       </div>
     </header>

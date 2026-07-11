@@ -69,7 +69,7 @@ export function HabitFormDialog({
     setDays((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d].sort()));
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!title.trim()) return;
     const frequency: HabitFrequency =
       freqType === "daily" ? { type: "daily" } : { type: freqType, days };
@@ -79,16 +79,20 @@ export function HabitFormDialog({
       frequency,
       timeOfDay: timeOfDay || undefined,
     };
-    if (isEdit) {
-      updateHabit(habit.id, payload);
-      toast.success("習慣を更新しました");
-      setOpen(false);
-      onSaved?.(habit);
-    } else {
-      const created = addHabit(payload);
-      toast.success("習慣を追加しました");
-      setOpen(false);
-      onSaved?.(created);
+    try {
+      if (isEdit) {
+        await updateHabit(habit.id, payload);
+        toast.success("習慣を更新しました");
+        setOpen(false);
+        onSaved?.(habit);
+      } else {
+        const created = await addHabit(payload);
+        toast.success("習慣を追加しました");
+        setOpen(false);
+        onSaved?.(created);
+      }
+    } catch {
+      // ストア側でtoast.errorを表示済み
     }
   }
 

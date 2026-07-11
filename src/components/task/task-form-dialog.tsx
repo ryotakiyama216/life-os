@@ -19,6 +19,7 @@ import { useAppStore } from "@/store/useAppStore";
 import type { Priority, Task, TaskStatus } from "@/types";
 import { PRIORITY_LABEL, TASK_STATUS_LABEL } from "@/types";
 import { todayISO } from "@/lib/date";
+import { getGoalSelectOptions, getProjectSelectOptions } from "@/lib/task-links";
 
 const NONE = "__none__";
 
@@ -81,8 +82,12 @@ export function TaskFormDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, task]);
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!title.trim()) return;
+    if (dueDate && scheduledDate && dueDate < scheduledDate) {
+      toast.error("期限日は実施予定日より前に設定できません");
+      return;
+    }
     const parsedTags = tags
       .split(",")
       .map((t) => t.trim())
@@ -98,20 +103,34 @@ export function TaskFormDialog({
       projectId: projectId === NONE ? undefined : projectId,
       tags: parsedTags,
     };
-    if (isEdit) {
-      updateTask(task.id, payload);
-      toast.success("タスクを更新しました");
-      setOpen(false);
-      onSaved?.(task);
-    } else {
-      const created = addTask(payload);
-      toast.success("タスクを追加しました");
-      setOpen(false);
-      onSaved?.(created);
+    try {
+      if (isEdit) {
+        await updateTask(task.id, payload);
+        toast.success("タスクを更新しました");
+        setOpen(false);
+        onSaved?.(task);
+      } else {
+        const created = await addTask(payload);
+        toast.success("タスクを追加しました");
+        setOpen(false);
+        onSaved?.(created);
+      }
+    } catch {
+      // ストア側でtoast.errorを表示済み。ダイアログは開いたままにする
     }
   }
 
-  const projectOptions = goalId !== NONE ? projects.filter((p) => p.goalId === goalId) : projects;
+  // プロジェクトを選ぶと、そのプロジェクトの目標にタスクの目標が一意に決まる
+  // （タスクが独立して別の目標を持つことはできない）。プロジェクト未設定の時だけ目標を自由選択できる。
+  function handleProjectChange(value: string) {
+    setProjectId(value);
+    if (value === NONE) return;
+    const selected = projects.find((p) => p.id === value);
+    setGoalId(selected?.goalId ?? NONE);
+  }
+
+  const goalOptions = getGoalSelectOptions(goals, projects, projectId === NONE ? undefined : projectId);
+  const projectOptions = getProjectSelectOptions(projects, goalId === NONE ? undefined : goalId);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -178,6 +197,7 @@ export function TaskFormDialog({
               <Input
                 id="task-due"
                 type="date"
+                min={scheduledDate || undefined}
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
               />
@@ -188,6 +208,7 @@ export function TaskFormDialog({
                 <Input
                   id="task-scheduled"
                   type="date"
+                  max={dueDate || undefined}
                   value={scheduledDate}
                   onChange={(e) => setScheduledDate(e.target.value)}
                 />
@@ -210,8 +231,8 @@ export function TaskFormDialog({
                   <SelectValue placeholder="なし" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={NONE}>なし</SelectItem>
-                  {goals.map((g) => (
+                  {goalOptions.allowNone && <SelectItem value={NONE}>なし</SelectItem>}
+                  {goalOptions.goals.map((g) => (
                     <SelectItem key={g.id} value={g.id}>
                       {g.title}
                     </SelectItem>
@@ -221,7 +242,7 @@ export function TaskFormDialog({
             </div>
             <div className="space-y-1.5">
               <Label>プロジェクト</Label>
-              <Select value={projectId} onValueChange={setProjectId}>
+              <Select value={projectId} onValueChange={handleProjectChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="なし" />
                 </SelectTrigger>

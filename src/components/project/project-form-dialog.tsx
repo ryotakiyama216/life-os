@@ -65,7 +65,7 @@ export function ProjectFormDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, project]);
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!title.trim()) return;
     const payload = {
       title: title.trim(),
@@ -74,16 +74,20 @@ export function ProjectFormDialog({
       goalId: goalId === NONE ? undefined : goalId,
       targetDate: targetDate || undefined,
     };
-    if (isEdit) {
-      updateProject(project.id, { ...payload, status });
-      toast.success("プロジェクトを更新しました");
-      setOpen(false);
-      onSaved?.(project);
-    } else {
-      const created = addProject(payload);
-      toast.success("プロジェクトを追加しました");
-      setOpen(false);
-      onSaved?.(created);
+    try {
+      if (isEdit) {
+        await updateProject(project.id, { ...payload, status });
+        toast.success("プロジェクトを更新しました");
+        setOpen(false);
+        onSaved?.(project);
+      } else {
+        const created = await addProject(payload);
+        toast.success("プロジェクトを追加しました");
+        setOpen(false);
+        onSaved?.(created);
+      }
+    } catch {
+      // ストア側でtoast.errorを表示済み
     }
   }
 
