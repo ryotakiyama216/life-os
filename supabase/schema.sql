@@ -211,3 +211,29 @@ end $$;
 -- （スキーマ全体を再実行するとRLSポリシーが重複エラーになるため）
 -- =========================================================
 alter table public.projects add column if not exists completed_at timestamptz;
+
+-- =========================================================
+-- 追記（リンク管理機能用）: 仕事上よく開くURLの保存
+-- 既存環境では、このブロックだけをSQL Editorで実行すればよい
+-- =========================================================
+create table if not exists public.links (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  title text not null,
+  url text not null,
+  category text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists links_user_id_idx on public.links(user_id);
+
+create trigger set_links_updated_at before update on public.links
+  for each row execute function public.set_updated_at();
+
+alter table public.links enable row level security;
+
+create policy "select own links" on public.links for select using (auth.uid() = user_id);
+create policy "insert own links" on public.links for insert with check (auth.uid() = user_id);
+create policy "update own links" on public.links for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "delete own links" on public.links for delete using (auth.uid() = user_id);

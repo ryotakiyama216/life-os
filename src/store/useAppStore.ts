@@ -8,6 +8,7 @@ import type {
   Habit,
   HabitLog,
   InboxItem,
+  LinkItem,
   MorningBlock,
   Note,
   Priority,
@@ -24,6 +25,7 @@ import { habitsQueries, fetchHabitLogs, toggleHabitLogRow } from "@/lib/supabase
 import { inboxQueries } from "@/lib/supabase/queries/inbox";
 import { notesQueries } from "@/lib/supabase/queries/notes";
 import { morningBlocksQueries } from "@/lib/supabase/queries/morning-blocks";
+import { linksQueries } from "@/lib/supabase/queries/links";
 
 function errorMessage(err: unknown, fallback: string): string {
   if (err && typeof err === "object" && "message" in err && typeof err.message === "string") {
@@ -45,6 +47,7 @@ interface AppState {
   inboxItems: InboxItem[];
   notes: Note[];
   morningBlocks: MorningBlock[];
+  links: LinkItem[];
   loading: boolean;
   loaded: boolean;
   loadAll: () => Promise<void>;
@@ -115,6 +118,11 @@ interface AppState {
   updateMorningBlock: (id: string, patch: Partial<Omit<MorningBlock, "id">>) => Promise<void>;
   removeMorningBlock: (id: string) => Promise<void>;
   toggleMorningBlockDone: (id: string) => Promise<void>;
+
+  // Link
+  addLink: (input: Pick<LinkItem, "title" | "url" | "category">) => Promise<LinkItem>;
+  updateLink: (id: string, patch: Partial<Omit<LinkItem, "id" | "createdAt">>) => Promise<void>;
+  removeLink: (id: string) => Promise<void>;
 }
 
 const emptyData = {
@@ -126,6 +134,7 @@ const emptyData = {
   inboxItems: [] as InboxItem[],
   notes: [] as Note[],
   morningBlocks: [] as MorningBlock[],
+  links: [] as LinkItem[],
 };
 
 export const useAppStore = create<AppState>()((set, get) => ({
@@ -136,7 +145,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   loadAll: async () => {
     set({ loading: true });
     try {
-      const [goals, projects, tasks, habits, habitLogs, inboxItems, notes, morningBlocks] =
+      const [goals, projects, tasks, habits, habitLogs, inboxItems, notes, morningBlocks, links] =
         await Promise.all([
           goalsQueries.fetchAll(),
           projectsQueries.fetchAll(),
@@ -146,6 +155,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
           inboxQueries.fetchAll(),
           notesQueries.fetchAll(),
           morningBlocksQueries.fetchAll(),
+          linksQueries.fetchAll(),
         ]);
       set({
         goals,
@@ -156,6 +166,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
         inboxItems,
         notes,
         morningBlocks: sortMorningBlocks(morningBlocks),
+        links,
         loaded: true,
         loading: false,
       });
@@ -472,6 +483,40 @@ export const useAppStore = create<AppState>()((set, get) => ({
       set((s) => ({ morningBlocks: s.morningBlocks.map((b) => (b.id === id ? block : b)) }));
     } catch (err) {
       toast.error(errorMessage(err, "時間割ブロックの更新に失敗しました"));
+      throw err;
+    }
+  },
+
+  // ---- Link ----
+  addLink: async (input) => {
+    try {
+      const link = await linksQueries.insert({
+        title: input.title,
+        url: input.url,
+        category: input.category,
+      });
+      set((s) => ({ links: [link, ...s.links] }));
+      return link;
+    } catch (err) {
+      toast.error(errorMessage(err, "リンクの追加に失敗しました"));
+      throw err;
+    }
+  },
+  updateLink: async (id, patch) => {
+    try {
+      const link = await linksQueries.update(id, patch);
+      set((s) => ({ links: s.links.map((l) => (l.id === id ? link : l)) }));
+    } catch (err) {
+      toast.error(errorMessage(err, "リンクの更新に失敗しました"));
+      throw err;
+    }
+  },
+  removeLink: async (id) => {
+    try {
+      await linksQueries.remove(id);
+      set((s) => ({ links: s.links.filter((l) => l.id !== id) }));
+    } catch (err) {
+      toast.error(errorMessage(err, "リンクの削除に失敗しました"));
       throw err;
     }
   },

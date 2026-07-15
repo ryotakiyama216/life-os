@@ -27,12 +27,12 @@ export default function ReviewPage() {
           description="タスクや習慣を完了すると、ここに記録されていきます"
         />
       ) : (
-        <div className="space-y-2.5">
+        <div className="space-y-6">
           {dates.map((date) => {
             const activity = getDayActivity(date, tasks, projects, habits, habitLogs);
             return (
               <Link key={date} href={`/review/${date}`}>
-                <Card className="flex items-center justify-between p-4 transition-colors hover:bg-secondary/40">
+                <Card className="flex items-center justify-between p-5 transition-colors hover:bg-secondary/40">
                   <span className="text-sm font-medium">{formatDateFullJP(date)}</span>
                   <span className="text-xs text-muted-foreground">{countActivity(activity)}</span>
                 </Card>

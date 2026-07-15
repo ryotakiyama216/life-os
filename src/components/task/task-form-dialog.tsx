@@ -67,6 +67,7 @@ export function TaskFormDialog({
   const [goalId, setGoalId] = React.useState(task?.goalId ?? defaultGoalId ?? NONE);
   const [projectId, setProjectId] = React.useState(task?.projectId ?? defaultProjectId ?? NONE);
   const [tags, setTags] = React.useState(task?.tags?.join(", ") ?? "");
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
     if (!open) return;
@@ -79,11 +80,12 @@ export function TaskFormDialog({
     setGoalId(task?.goalId ?? defaultGoalId ?? NONE);
     setProjectId(task?.projectId ?? defaultProjectId ?? NONE);
     setTags(task?.tags?.join(", ") ?? "");
+    setIsSubmitting(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, task]);
 
   async function handleSubmit() {
-    if (!title.trim()) return;
+    if (!title.trim() || isSubmitting) return;
     if (dueDate && scheduledDate && dueDate < scheduledDate) {
       toast.error("期限日は実施予定日より前に設定できません");
       return;
@@ -103,6 +105,7 @@ export function TaskFormDialog({
       projectId: projectId === NONE ? undefined : projectId,
       tags: parsedTags,
     };
+    setIsSubmitting(true);
     try {
       if (isEdit) {
         await updateTask(task.id, payload);
@@ -117,6 +120,8 @@ export function TaskFormDialog({
       }
     } catch {
       // ストア側でtoast.errorを表示済み。ダイアログは開いたままにする
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -271,7 +276,7 @@ export function TaskFormDialog({
           <Button variant="ghost" onClick={() => setOpen(false)}>
             キャンセル
           </Button>
-          <Button onClick={handleSubmit} disabled={!title.trim()}>
+          <Button onClick={handleSubmit} disabled={!title.trim() || isSubmitting}>
             {isEdit ? "更新する" : "追加する"}
           </Button>
         </DialogFooter>

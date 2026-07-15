@@ -141,7 +141,7 @@ export default function NoteDetailPage({ params }: { params: { id: string } }) {
           setContent(v);
           debouncedUpdateNote({ content: v });
         }}
-        minRows={16}
+        minRows={32}
       />
     </div>
   );

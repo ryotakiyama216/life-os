@@ -27,10 +27,15 @@ export function MarkdownEditor({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder ?? "Markdownで書けます（見出し、リスト、チェックボックスなど）"}
           rows={minRows}
-          className="font-mono text-sm"
+          className="resize-y font-mono text-sm"
+          style={{ minHeight: `${minRows * 1.5}rem` }}
         />
       </TabsContent>
-      <TabsContent value="preview" className="rounded-md border px-4 py-3">
+      <TabsContent
+        value="preview"
+        className="rounded-md border px-4 py-3"
+        style={{ minHeight: `${minRows * 1.5}rem` }}
+      >
         <MarkdownContent content={value} />
       </TabsContent>
     </Tabs>

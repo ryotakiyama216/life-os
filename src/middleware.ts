@@ -34,10 +34,12 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // getUser()はSupabaseにトークンを問い合わせて検証する（getSession()はCookieを信用するだけなのでmiddlewareでは使わない）
+  // getSession()はCookieのみで検証するためネットワーク往復がなく高速（画面遷移のたびにmiddlewareを通るため採用）。
+  // 実データの読み書きはRLSがuser_idで別途保護しているため、ここでの検証はルーティング用の軽いチェックとして割り切る。
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
 
   const isPublicPath = PUBLIC_PATHS.includes(request.nextUrl.pathname);
 

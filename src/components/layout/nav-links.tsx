@@ -8,6 +8,7 @@ import {
   FolderKanban,
   History,
   Inbox,
+  Link2,
   ListTodo,
   Repeat,
   Search,
@@ -26,6 +27,7 @@ export const NAV_ITEMS = [
   { href: "/search", label: "検索", icon: Search },
   { href: "/habits", label: "習慣", icon: Repeat },
   { href: "/notes", label: "ページ・メモ", icon: FileText },
+  { href: "/links", label: "リンク", icon: Link2 },
   { href: "/review", label: "振り返り", icon: History },
   { href: "/settings", label: "設定", icon: Settings },
 ] as const;
@@ -35,7 +37,7 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const unprocessedCount = useAppStore((s) => s.inboxItems.filter((i) => !i.processed).length);
 
   return (
-    <nav className="flex-1 space-y-0.5 p-2">
+    <nav className="flex-1 space-y-1.5 p-2">
       {NAV_ITEMS.map((item) => {
         const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
         const Icon = item.icon;

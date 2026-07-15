@@ -94,6 +94,12 @@ export interface MorningBlock {
   done: boolean;
 }
 
+export interface LinkItem extends BaseEntity {
+  title: string;
+  url: string;
+  category: string; // 自由入力。例: メール、Meet、Slack
+}
+
 export const PRIORITY_LABEL: Record<Priority, string> = {
   P1: "P1・最優先",
   P2: "P2・重要",
