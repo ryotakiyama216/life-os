@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CalendarCheck,
+  CalendarDays,
   FileText,
   FolderKanban,
   History,
@@ -25,6 +26,7 @@ export const NAV_ITEMS = [
   { href: "/projects", label: "プロジェクト", icon: FolderKanban },
   { href: "/tasks", label: "タスク", icon: ListTodo },
   { href: "/search", label: "検索", icon: Search },
+  { href: "/schedule", label: "予定", icon: CalendarDays },
   { href: "/habits", label: "習慣", icon: Repeat },
   { href: "/notes", label: "ページ・メモ", icon: FileText },
   { href: "/links", label: "リンク", icon: Link2 },

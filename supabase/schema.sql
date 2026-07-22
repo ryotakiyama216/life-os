@@ -237,3 +237,32 @@ create policy "select own links" on public.links for select using (auth.uid() = 
 create policy "insert own links" on public.links for insert with check (auth.uid() = user_id);
 create policy "update own links" on public.links for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "delete own links" on public.links for delete using (auth.uid() = user_id);
+
+-- =========================================================
+-- 追記（予定機能用）: 通院・美容室など単発の予定を管理するテーブル
+-- 既存環境では、このブロックだけをSQL Editorで実行すればよい
+-- =========================================================
+create table if not exists public.events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  title text not null,
+  date date not null,
+  time text,
+  location text,
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists events_user_id_idx on public.events(user_id);
+create index if not exists events_date_idx on public.events(date);
+
+create trigger set_events_updated_at before update on public.events
+  for each row execute function public.set_updated_at();
+
+alter table public.events enable row level security;
+
+create policy "select own events" on public.events for select using (auth.uid() = user_id);
+create policy "insert own events" on public.events for insert with check (auth.uid() = user_id);
+create policy "update own events" on public.events for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "delete own events" on public.events for delete using (auth.uid() = user_id);

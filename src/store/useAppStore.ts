@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { toast } from "sonner";
 import type {
+  Event,
   Goal,
   GoalStatus,
   Habit,
@@ -26,6 +27,7 @@ import { inboxQueries } from "@/lib/supabase/queries/inbox";
 import { notesQueries } from "@/lib/supabase/queries/notes";
 import { morningBlocksQueries } from "@/lib/supabase/queries/morning-blocks";
 import { linksQueries } from "@/lib/supabase/queries/links";
+import { eventsQueries } from "@/lib/supabase/queries/events";
 
 function errorMessage(err: unknown, fallback: string): string {
   if (err && typeof err === "object" && "message" in err && typeof err.message === "string") {
@@ -48,6 +50,7 @@ interface AppState {
   notes: Note[];
   morningBlocks: MorningBlock[];
   links: LinkItem[];
+  events: Event[];
   loading: boolean;
   loaded: boolean;
   loadAll: () => Promise<void>;
@@ -123,6 +126,13 @@ interface AppState {
   addLink: (input: Pick<LinkItem, "title" | "url" | "category">) => Promise<LinkItem>;
   updateLink: (id: string, patch: Partial<Omit<LinkItem, "id" | "createdAt">>) => Promise<void>;
   removeLink: (id: string) => Promise<void>;
+
+  // Event
+  addEvent: (
+    input: Pick<Event, "title" | "date"> & Partial<Pick<Event, "time" | "location" | "notes">>
+  ) => Promise<Event>;
+  updateEvent: (id: string, patch: Partial<Omit<Event, "id" | "createdAt">>) => Promise<void>;
+  removeEvent: (id: string) => Promise<void>;
 }
 
 const emptyData = {
@@ -135,6 +145,7 @@ const emptyData = {
   notes: [] as Note[],
   morningBlocks: [] as MorningBlock[],
   links: [] as LinkItem[],
+  events: [] as Event[],
 };
 
 export const useAppStore = create<AppState>()((set, get) => ({
@@ -145,7 +156,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   loadAll: async () => {
     set({ loading: true });
     try {
-      const [goals, projects, tasks, habits, habitLogs, inboxItems, notes, morningBlocks, links] =
+      const [goals, projects, tasks, habits, habitLogs, inboxItems, notes, morningBlocks, links, events] =
         await Promise.all([
           goalsQueries.fetchAll(),
           projectsQueries.fetchAll(),
@@ -156,6 +167,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
           notesQueries.fetchAll(),
           morningBlocksQueries.fetchAll(),
           linksQueries.fetchAll(),
+          eventsQueries.fetchAll(),
         ]);
       set({
         goals,
@@ -167,6 +179,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
         notes,
         morningBlocks: sortMorningBlocks(morningBlocks),
         links,
+        events,
         loaded: true,
         loading: false,
       });
@@ -517,6 +530,44 @@ export const useAppStore = create<AppState>()((set, get) => ({
       set((s) => ({ links: s.links.filter((l) => l.id !== id) }));
     } catch (err) {
       toast.error(errorMessage(err, "リンクの削除に失敗しました"));
+      throw err;
+    }
+  },
+
+  // ---- Event ----
+  addEvent: async (input) => {
+    try {
+      const event = await eventsQueries.insert({
+        title: input.title,
+        date: input.date,
+        time: input.time,
+        location: input.location,
+        notes: input.notes,
+      });
+      set((s) => ({ events: [...s.events, event].sort((a, b) => a.date.localeCompare(b.date)) }));
+      return event;
+    } catch (err) {
+      toast.error(errorMessage(err, "予定の追加に失敗しました"));
+      throw err;
+    }
+  },
+  updateEvent: async (id, patch) => {
+    try {
+      const event = await eventsQueries.update(id, patch);
+      set((s) => ({
+        events: s.events.map((e) => (e.id === id ? event : e)).sort((a, b) => a.date.localeCompare(b.date)),
+      }));
+    } catch (err) {
+      toast.error(errorMessage(err, "予定の更新に失敗しました"));
+      throw err;
+    }
+  },
+  removeEvent: async (id) => {
+    try {
+      await eventsQueries.remove(id);
+      set((s) => ({ events: s.events.filter((e) => e.id !== id) }));
+    } catch (err) {
+      toast.error(errorMessage(err, "予定の削除に失敗しました"));
       throw err;
     }
   },

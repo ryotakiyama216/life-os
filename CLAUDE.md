@@ -50,7 +50,7 @@ Zustand v5は内部で`useSyncExternalStore`を使っており、セレクタが
 
 - スキーマは`supabase/schema.sql`に集約（テーブル定義・RLSポリシー・updated_atトリガー）。テーブルを追加・変更したらこのファイルも更新し、変更内容をユーザーに伝えて手動でSQL Editorに反映してもらう（マイグレーションツールは導入していない）。
 - 全テーブルの`user_id`は`default auth.uid()`。クライアントからinsertする際に`user_id`を明示的に渡す必要はない（RLSの`with check`が自動的に締める）。
-- クエリ層は`src/lib/supabase/queries/`配下にエンティティごと（`goals.ts`, `projects.ts`, `tasks.ts`, `habits.ts`, `notes.ts`, `inbox.ts`, `morning-blocks.ts`）。ほとんどは`src/lib/supabase/entity.ts`の`createEntityQueries<T>(table)`ジェネリックファクトリで賄っている（fetchAll/insert/update/remove）。habit_logsだけは`habits.ts`内に個別実装（find-or-create-or-toggleのロジックがあるため）。
+- クエリ層は`src/lib/supabase/queries/`配下にエンティティごと（`goals.ts`, `projects.ts`, `tasks.ts`, `habits.ts`, `notes.ts`, `inbox.ts`, `morning-blocks.ts`, `events.ts`）。ほとんどは`src/lib/supabase/entity.ts`の`createEntityQueries<T>(table)`ジェネリックファクトリで賄っている（fetchAll/insert/update/remove）。habit_logsだけは`habits.ts`内に個別実装（find-or-create-or-toggleのロジックがあるため）。
 - snake_case⇄camelCaseの変換は`src/lib/supabase/case.ts`の`toDbRow`/`fromDbRow`で汎用的に行っている（フィールドごとの変換テーブルは持たない。新しいカラムを追加する場合もこの命名規則を踏襲すれば自動で変換される）。
 - ストアの各CRUDアクションは非同期関数で、失敗時は`toast.error`をストア内で表示してからthrowする。呼び出し側（フォームダイアログ等）はtry/catchで受けて、成功時だけダイアログを閉じる・ページ遷移する設計（エラー時にtoastが二重に出ないよう、呼び出し側では追加のtoast.errorを出さない）。
 - 認証: `src/components/auth/auth-provider.tsx`がセッション監視とログイン後の`loadAll()`実行を担当。ルートは`src/app/(app)/`グループ配下（AppShellあり）と`src/app/login/`（AppShellなし）に分かれている。ルートlayout(`src/app/layout.tsx`)はAppShellを持たない。
@@ -68,7 +68,7 @@ src/
     ui/                # shadcn/uiの生成コンポーネント（基本的に手で書き換えない）
     layout/            # サイドバー・トップバー等のアプリシェル
     auth/               # AuthProvider
-    goal/ project/ task/ habit/ note/ today/ inbox/  # 機能別コンポーネント
+    goal/ project/ task/ habit/ note/ event/ today/ inbox/  # 機能別コンポーネント
   store/useAppStore.ts # Zustandストア（Supabase連携の非同期CRUD）
   types/index.ts        # ドメイン型（Supabaseスキーマと1:1）
   lib/
@@ -96,4 +96,8 @@ history/                # セッションごとの作業記録（日付.md）
 
 ## 次にやること
 
-`history/`の最新の記録を参照。優先度が高い順に: Vercelデプロイ（環境変数設定）→ AI機能（コスト判断待ちで保留中）→ SNS管理機能。
+`history/`の最新の記録を参照。優先度が高い順に:
+1. `supabase/schema.sql`末尾に追記済みの`events`テーブルをユーザーがSupabase SQL Editorで未実行（単発の予定/`/schedule`機能用。実行しないと予定機能がDBエラーになる）
+2. Vercelデプロイ（環境変数設定）
+3. AI機能（コスト判断待ちで保留中）
+4. SNS管理機能

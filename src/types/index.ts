@@ -85,6 +85,14 @@ export interface Note extends BaseEntity {
   tags: string[];
 }
 
+export interface Event extends BaseEntity {
+  title: string;
+  date: string; // ISO date - 予定の日付
+  time?: string; // "14:30" 任意（終日予定もあり得る）
+  location?: string; // 病院名・美容室名など任意
+  notes?: string; // 任意の一言メモ
+}
+
 export interface MorningBlock {
   id: string;
   date: string; // ISO date
