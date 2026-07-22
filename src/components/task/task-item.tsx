@@ -4,7 +4,6 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MoreHorizontal, Pencil, Trash2, CalendarPlus, CalendarClock } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,8 +13,9 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { PriorityBadge } from "@/components/priority-badge";
+import { TaskStatusControl } from "@/components/task/task-status-control";
 import { useAppStore } from "@/store/useAppStore";
-import type { Task } from "@/types";
+import type { Task, TaskStatus } from "@/types";
 import { cn } from "@/lib/utils";
 import { formatDateJP, isOverdue, isToday, overdueLabel, todayISO } from "@/lib/date";
 import { getPostponeToTomorrowPatch } from "@/lib/priority";
@@ -40,26 +40,28 @@ export function TaskItem({
   const overdue = task.status !== "done" && isOverdue(task.dueDate);
   const scheduledToday = isToday(task.scheduledDate);
   const done = task.status === "done";
+  const inProgress = task.status === "in_progress";
+
+  function handleStatusChange(value: TaskStatus) {
+    if (value === "done") {
+      completeTask(task.id);
+      toast.success("完了しました");
+    } else if (task.status === "done") {
+      updateTask(task.id, { status: value, completedAt: undefined });
+    } else {
+      updateTask(task.id, { status: value });
+    }
+  }
 
   return (
     <div
       className={cn(
         "flex items-start gap-3 rounded-lg border bg-card px-3 py-2.5",
-        overdue && "border-red-200 dark:border-red-900/50"
+        overdue && "border-red-200 dark:border-red-900/50",
+        !overdue && inProgress && "border-blue-200 dark:border-blue-900/50"
       )}
     >
-      <Checkbox
-        checked={done}
-        className="mt-0.5"
-        onCheckedChange={(checked) => {
-          if (checked) {
-            completeTask(task.id);
-            toast.success("完了しました");
-          } else {
-            updateTask(task.id, { status: "todo", completedAt: undefined });
-          }
-        }}
-      />
+      <TaskStatusControl status={task.status} onChange={handleStatusChange} className="mt-0.5" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <Link

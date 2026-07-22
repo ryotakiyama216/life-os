@@ -11,10 +11,28 @@ export function isOpenTask(task: Task): boolean {
   return task.status !== "done" && task.status !== "someday";
 }
 
+/** 期限日・実施予定日のうち、超過している方の日数（マイナスが大きいほど超過が長い）を返す */
+function worstOverdueDays(task: Task): number {
+  const days: number[] = [];
+  if (task.dueDate && isOverdue(task.dueDate)) days.push(daysFromToday(task.dueDate));
+  if (task.scheduledDate && isOverdue(task.scheduledDate)) days.push(daysFromToday(task.scheduledDate));
+  return Math.min(...days);
+}
+
+/**
+ * 期限日(dueDate)または実施予定日(scheduledDate)のどちらかが今日より前になっている
+ * 未完了タスクをすべて返す。以前は予定日超過のみのタスクがFocusSuggestionsの
+ * 上位5件枠に運良く入らないと表示されない「くじ引き」状態になっていたため、
+ * ここで確実に拾い上げるようにしている。
+ */
 export function getOverdueTasks(tasks: Task[]): Task[] {
   return tasks
-    .filter((t) => isOpenTask(t) && t.dueDate && isOverdue(t.dueDate))
-    .sort((a, b) => daysFromToday(a.dueDate!) - daysFromToday(b.dueDate!));
+    .filter(
+      (t) =>
+        isOpenTask(t) &&
+        ((t.dueDate && isOverdue(t.dueDate)) || (t.scheduledDate && isOverdue(t.scheduledDate)))
+    )
+    .sort((a, b) => worstOverdueDays(a) - worstOverdueDays(b));
 }
 
 export function getTodayTasks(tasks: Task[]): Task[] {
@@ -48,11 +66,6 @@ export function focusScore(
     else if (days === 0) score += 500;
     else score += Math.max(0, 60 - days * 5); // 近い将来ほど加点
   }
-  if (task.scheduledDate && isOverdue(task.scheduledDate)) {
-    // 予定日を過ぎても未完了＝先送りされている。再度「今日やるか」判断してほしいので高めに加点
-    score += 800 + Math.abs(daysFromToday(task.scheduledDate)) * 10;
-  }
-
   return score;
 }
 
@@ -70,11 +83,10 @@ export function getFocusSuggestions(
     .filter(
       (t) =>
         isOpenTask(t) &&
-        !isToday(t.dueDate) &&
-        // 実施予定日が「今日以降」で決まっているタスクだけ候補から除外する。
-        // 予定日が過去（先送りされたまま未完了）のタスクは、再度判断が必要なので候補に残す。
-        !(t.scheduledDate && !isOverdue(t.scheduledDate)) &&
-        !(t.dueDate && isOverdue(t.dueDate))
+        // 実施予定日が決まっているタスクは、今日やること/期限切れ・先送りの
+        // いずれかのセクションで確実に表示されるため候補から除外する。
+        !t.scheduledDate &&
+        !(t.dueDate && (isToday(t.dueDate) || isOverdue(t.dueDate)))
     )
     .map((t) => ({ task: t, score: focusScore(t, goalsById, projectsById) }))
     .sort((a, b) => b.score - a.score)

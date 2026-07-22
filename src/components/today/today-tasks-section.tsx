@@ -12,6 +12,7 @@ import { todayISO } from "@/lib/date";
 export function TodayTasksSection() {
   const tasks = useAppStore((s) => s.tasks);
   const todayTasks = getTodayTasks(tasks);
+  const inProgressCount = tasks.filter((t) => t.status === "in_progress").length;
 
   return (
     <section className="space-y-2.5">
@@ -30,6 +31,11 @@ export function TodayTasksSection() {
           }
         />
       </div>
+      {inProgressCount >= 2 && (
+        <p className="text-xs text-muted-foreground">
+          進行中のタスクが{inProgressCount}件あります。1つに絞ると集中しやすくなります。
+        </p>
+      )}
       {todayTasks.length === 0 ? (
         <EmptyState
           icon={CalendarCheck}

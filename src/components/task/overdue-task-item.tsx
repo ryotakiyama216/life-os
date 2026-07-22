@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarClock, CalendarPlus, Pencil, Trash2 } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { PriorityBadge } from "@/components/priority-badge";
+import { TaskStatusControl } from "@/components/task/task-status-control";
 import { useAppStore } from "@/store/useAppStore";
-import type { Task } from "@/types";
+import type { Task, TaskStatus } from "@/types";
 import { cn } from "@/lib/utils";
-import { formatDateJP, isToday, overdueLabel, todayISO } from "@/lib/date";
+import { formatDateJP, isOverdue, isToday, overdueLabel, todayISO } from "@/lib/date";
 import { getPostponeToTomorrowPatch } from "@/lib/priority";
 
 /** 期限切れタスク専用: 「今日やる/明日に延期/削除」を隠さずボタンで直接表示する */
@@ -25,38 +25,51 @@ export function OverdueTaskItem({ task }: { task: Task }) {
   );
 
   const scheduledToday = isToday(task.scheduledDate);
+  const dueOverdue = Boolean(task.dueDate && isOverdue(task.dueDate));
+  const scheduledOverdue = Boolean(task.scheduledDate && isOverdue(task.scheduledDate));
+
+  function handleStatusChange(value: TaskStatus) {
+    if (value === "done") {
+      completeTask(task.id);
+      toast.success("完了しました");
+    } else {
+      updateTask(task.id, { status: value });
+    }
+  }
 
   return (
     <div className="rounded-lg border border-red-200 bg-card px-3 py-2.5 dark:border-red-900/50">
       <div className="flex items-start gap-3">
-        <Checkbox
-          checked={false}
-          className="mt-0.5"
-          onCheckedChange={(checked) => {
-            if (checked) {
-              completeTask(task.id);
-              toast.success("完了しました");
-            }
-          }}
-        />
+        <TaskStatusControl status={task.status} onChange={handleStatusChange} className="mt-0.5" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <Link href={`/tasks/${task.id}`} className="text-sm hover:underline">
               {task.title}
             </Link>
             <PriorityBadge priority={task.priority} />
-            <span className="text-xs font-medium text-red-600 dark:text-red-400">
-              期限 {formatDateJP(task.dueDate)}（{overdueLabel(task.dueDate!)}）
-            </span>
+            {task.dueDate && (
+              <span
+                className={cn(
+                  "text-xs",
+                  dueOverdue ? "font-medium text-red-600 dark:text-red-400" : "text-muted-foreground"
+                )}
+              >
+                期限 {formatDateJP(task.dueDate)}
+                {dueOverdue && `（${overdueLabel(task.dueDate)}）`}
+              </span>
+            )}
             {task.scheduledDate && (
               <span
                 className={cn(
                   "text-xs",
-                  scheduledToday ? "font-medium text-blue-600 dark:text-blue-400" : "text-muted-foreground"
+                  scheduledOverdue || scheduledToday
+                    ? "font-medium text-red-600 dark:text-red-400"
+                    : "text-muted-foreground"
                 )}
               >
                 予定 {formatDateJP(task.scheduledDate)}
-                {scheduledToday && "（今日）"}
+                {scheduledOverdue && `（${overdueLabel(task.scheduledDate)}・未完了）`}
+                {!scheduledOverdue && scheduledToday && "（今日）"}
               </span>
             )}
             {(project || goal) && (

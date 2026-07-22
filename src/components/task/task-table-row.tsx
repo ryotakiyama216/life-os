@@ -5,7 +5,6 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { ExternalLink, MoreHorizontal, Trash2, CalendarPlus, CalendarClock } from "lucide-react";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,9 +15,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { TaskStatusControl } from "@/components/task/task-status-control";
 import { useAppStore } from "@/store/useAppStore";
 import type { Priority, Task, TaskStatus } from "@/types";
-import { PRIORITY_LABEL, TASK_STATUS_LABEL } from "@/types";
+import { PRIORITY_LABEL } from "@/types";
 import { cn } from "@/lib/utils";
 import { formatDateJP, isOverdue, isToday, todayISO } from "@/lib/date";
 import { getPostponeToTomorrowPatch } from "@/lib/priority";
@@ -44,6 +44,7 @@ export function TaskTableRow({ task }: { task: Task }) {
   const overdue = task.status !== "done" && isOverdue(task.dueDate);
   const scheduledToday = isToday(task.scheduledDate);
   const done = task.status === "done";
+  const inProgress = task.status === "in_progress";
 
   function handleStatusChange(value: TaskStatus) {
     if (value === "done") {
@@ -85,19 +86,12 @@ export function TaskTableRow({ task }: { task: Task }) {
   const projectOptions = getProjectSelectOptions(projects, effectiveGoalId);
 
   return (
-    <TableRow className={cn(overdue && "bg-red-50/50 dark:bg-red-950/10")}>
-      <TableCell>
-        <Checkbox
-          checked={done}
-          onCheckedChange={(checked) => {
-            if (checked) {
-              completeTask(task.id);
-            } else {
-              updateTask(task.id, { status: "todo", completedAt: undefined });
-            }
-          }}
-        />
-      </TableCell>
+    <TableRow
+      className={cn(
+        overdue && "bg-red-50/50 dark:bg-red-950/10",
+        !overdue && inProgress && "bg-blue-50/50 dark:bg-blue-950/10"
+      )}
+    >
       <TableCell className="min-w-[200px] max-w-[240px]">
         <div className="flex items-center gap-1">
           <Input
@@ -130,18 +124,7 @@ export function TaskTableRow({ task }: { task: Task }) {
         )}
       </TableCell>
       <TableCell>
-        <Select value={task.status} onValueChange={(v) => handleStatusChange(v as TaskStatus)}>
-          <SelectTrigger className="h-8 w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(TASK_STATUS_LABEL).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <TaskStatusControl status={task.status} onChange={handleStatusChange} />
       </TableCell>
       <TableCell>
         <Select value={task.priority} onValueChange={(v) => updateTask(task.id, { priority: v as Priority })}>
