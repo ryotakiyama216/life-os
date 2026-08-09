@@ -38,13 +38,15 @@ export function HabitsToday() {
             const goal = h.goalId ? goalsById.get(h.goalId) : undefined;
             return (
               <li key={h.id} className="flex items-center gap-2.5 rounded-md border px-2.5 py-1.5">
-                <Checkbox checked={done} onCheckedChange={() => toggleHabitLog(h.id, today)} />
-                <div className="min-w-0">
-                  <span className={cn("text-sm", done && "text-muted-foreground line-through")}>
-                    {h.title}
-                  </span>
-                  {goal && <p className="text-xs text-muted-foreground">{goal.title}</p>}
-                </div>
+                <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 py-1">
+                  <Checkbox checked={done} onCheckedChange={() => toggleHabitLog(h.id, today)} />
+                  <div className="min-w-0">
+                    <span className={cn("text-sm", done && "text-muted-foreground line-through")}>
+                      {h.title}
+                    </span>
+                    {goal && <p className="text-xs text-muted-foreground">{goal.title}</p>}
+                  </div>
+                </label>
                 {h.timeOfDay && (
                   <span className="ml-auto shrink-0 text-xs tabular-nums text-muted-foreground">
                     {h.timeOfDay}

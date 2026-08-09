@@ -83,7 +83,7 @@ export function EventFormDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{isEdit ? "予定を編集" : "予定を追加"}</DialogTitle>
         </DialogHeader>
@@ -98,7 +98,7 @@ export function EventFormDialog({
               autoFocus
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="event-date">日付</Label>
               <Input id="event-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />

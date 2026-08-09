@@ -109,7 +109,7 @@ export function TaskItem({
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="size-7 shrink-0">
+          <Button variant="ghost" size="icon" className="size-8 shrink-0">
             <MoreHorizontal className="size-4" />
           </Button>
         </DropdownMenuTrigger>

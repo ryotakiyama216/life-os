@@ -164,7 +164,7 @@ export function TaskFormDialog({
               rows={3}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>状態</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as TaskStatus)}>
@@ -196,7 +196,7 @@ export function TaskFormDialog({
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="task-due">期限日</Label>
               <Input
@@ -228,7 +228,7 @@ export function TaskFormDialog({
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>目標</Label>
               <Select value={goalId} onValueChange={setGoalId}>

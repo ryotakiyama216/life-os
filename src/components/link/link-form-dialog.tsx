@@ -83,7 +83,7 @@ export function LinkFormDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{isEdit ? "リンクを編集" : "リンクを追加"}</DialogTitle>
         </DialogHeader>

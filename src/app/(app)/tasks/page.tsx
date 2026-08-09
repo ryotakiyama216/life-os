@@ -12,6 +12,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components
 import { MultiSelectFilter } from "@/components/multi-select-filter";
 import { TaskFormDialog } from "@/components/task/task-form-dialog";
 import { TaskTableRow } from "@/components/task/task-table-row";
+import { TaskItem } from "@/components/task/task-item";
 import { useAppStore } from "@/store/useAppStore";
 import { PRIORITY_ORDER, TASK_STATUS_LABEL } from "@/types";
 import type { Priority, TaskStatus } from "@/types";
@@ -166,27 +167,34 @@ export default function TasksPage() {
       {filtered.length === 0 ? (
         <EmptyState icon={ListTodo} title="条件に合うタスクがありません" />
       ) : (
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>タイトル</TableHead>
-                <TableHead>状態</TableHead>
-                <TableHead>優先度</TableHead>
-                <TableHead>期限</TableHead>
-                <TableHead>予定日</TableHead>
-                <TableHead>目標</TableHead>
-                <TableHead>プロジェクト</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((t) => (
-                <TaskTableRow key={t.id} task={t} />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <>
+          <div className="space-y-2 md:hidden">
+            {filtered.map((t) => (
+              <TaskItem key={t.id} task={t} showProjectGoal />
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>タイトル</TableHead>
+                  <TableHead>状態</TableHead>
+                  <TableHead>優先度</TableHead>
+                  <TableHead>期限</TableHead>
+                  <TableHead>予定日</TableHead>
+                  <TableHead>目標</TableHead>
+                  <TableHead>プロジェクト</TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((t) => (
+                  <TaskTableRow key={t.id} task={t} />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </>
       )}
     </div>
   );

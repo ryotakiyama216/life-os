@@ -109,7 +109,7 @@ export function ProjectFormDialog({
               autoFocus
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>紐づく目標</Label>
               <Select value={goalId} onValueChange={setGoalId}>
@@ -144,7 +144,7 @@ export function ProjectFormDialog({
               </div>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>優先度</Label>
               <Select value={priority} onValueChange={(v) => setPriority(v as Priority)}>

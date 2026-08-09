@@ -36,7 +36,7 @@ export function TaskStatusControl({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button type="button" className="shrink-0">
+        <button type="button" className="-m-1.5 shrink-0 p-1.5">
           <Badge
             variant="outline"
             className={cn("cursor-pointer font-normal", TASK_STATUS_STYLE[status], className)}
