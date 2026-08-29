@@ -44,6 +44,7 @@ export function EventFormDialog({
   const [time, setTime] = React.useState(event?.time ?? "");
   const [location, setLocation] = React.useState(event?.location ?? "");
   const [notes, setNotes] = React.useState(event?.notes ?? "");
+  const [titleTouched, setTitleTouched] = React.useState(false);
 
   React.useEffect(() => {
     if (!open) return;
@@ -52,10 +53,14 @@ export function EventFormDialog({
     setTime(event?.time ?? "");
     setLocation(event?.location ?? "");
     setNotes(event?.notes ?? "");
+    setTitleTouched(false);
   }, [open, event]);
 
   async function handleSubmit() {
-    if (!title.trim() || !date) return;
+    if (!title.trim() || !date) {
+      setTitleTouched(true);
+      return;
+    }
     const payload = {
       title: title.trim(),
       date,
@@ -89,18 +94,26 @@ export function EventFormDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="event-title">タイトル</Label>
+            <Label htmlFor="event-title">
+              タイトル <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="event-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => setTitleTouched(true)}
               placeholder="例: 通院、美容室"
               autoFocus
             />
+            {titleTouched && !title.trim() && (
+              <p className="text-xs text-red-600 dark:text-red-400">タイトルを入力してください</p>
+            )}
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="event-date">日付</Label>
+              <Label htmlFor="event-date">
+                日付 <span className="text-red-500">*</span>
+              </Label>
               <Input id="event-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
             <div className="space-y-1.5">

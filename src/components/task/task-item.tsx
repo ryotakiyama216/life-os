@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MoreHorizontal, Pencil, Trash2, CalendarPlus, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,10 +15,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { PriorityBadge } from "@/components/priority-badge";
 import { TaskStatusControl } from "@/components/task/task-status-control";
+import { OverdueLabel } from "@/components/overdue-label";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { useAppStore } from "@/store/useAppStore";
 import type { Task, TaskStatus } from "@/types";
 import { cn } from "@/lib/utils";
-import { formatDateJP, isOverdue, isToday, overdueLabel, todayISO } from "@/lib/date";
+import { formatDateJP, isOverdue, isToday, todayISO } from "@/lib/date";
 import { getPostponeToTomorrowPatch } from "@/lib/priority";
 import { toast } from "sonner";
 
@@ -36,6 +39,7 @@ export function TaskItem({
   const project = useAppStore((s) =>
     task.projectId ? s.projects.find((p) => p.id === task.projectId) : undefined
   );
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
 
   const overdue = task.status !== "done" && isOverdue(task.dueDate);
   const scheduledToday = isToday(task.scheduledDate);
@@ -53,6 +57,15 @@ export function TaskItem({
     }
   }
 
+  function handleCheckedChange(checked: boolean) {
+    if (checked) {
+      completeTask(task.id);
+      toast.success("完了しました");
+    } else {
+      updateTask(task.id, { status: "todo", completedAt: undefined });
+    }
+  }
+
   return (
     <div
       className={cn(
@@ -61,6 +74,12 @@ export function TaskItem({
         !overdue && inProgress && "border-blue-200 dark:border-blue-900/50"
       )}
     >
+      <Checkbox
+        checked={done}
+        onCheckedChange={handleCheckedChange}
+        aria-label={done ? "タスクを未完了に戻す" : "タスクを完了にする"}
+        className="mt-1.5 shrink-0"
+      />
       <TaskStatusControl status={task.status} onChange={handleStatusChange} className="mt-0.5" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -74,12 +93,11 @@ export function TaskItem({
             {task.title}
           </Link>
           <PriorityBadge priority={task.priority} />
-          {task.dueDate && (
-            <span className={cn("text-xs", overdue ? "font-medium text-red-600 dark:text-red-400" : "text-muted-foreground")}>
-              期限 {formatDateJP(task.dueDate)}
-              {overdue && `（${overdueLabel(task.dueDate)}）`}
-            </span>
-          )}
+          {task.dueDate && (overdue ? (
+            <OverdueLabel date={task.dueDate} label="期限 " />
+          ) : (
+            <span className="text-xs text-muted-foreground">期限 {formatDateJP(task.dueDate)}</span>
+          ))}
           {task.scheduledDate && (
             <span
               className={cn(
@@ -109,7 +127,7 @@ export function TaskItem({
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="size-8 shrink-0">
+          <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label="その他の操作">
             <MoreHorizontal className="size-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -126,15 +144,26 @@ export function TaskItem({
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="text-red-600 focus:text-red-600 dark:text-red-400"
-            onSelect={() => {
-              removeTask(task.id);
-              toast("タスクを削除しました");
+            onSelect={(e) => {
+              e.preventDefault();
+              setConfirmDeleteOpen(true);
             }}
           >
             <Trash2 className="size-4" /> 削除
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <ConfirmDeleteDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="タスクを削除しますか？"
+        description={`「${task.title}」を削除します。この操作は取り消せません。`}
+        onConfirm={() => {
+          removeTask(task.id);
+          toast("タスクを削除しました");
+          setConfirmDeleteOpen(false);
+        }}
+      />
     </div>
   );
 }

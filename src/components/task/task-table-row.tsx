@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TaskStatusControl } from "@/components/task/task-status-control";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { useAppStore } from "@/store/useAppStore";
 import type { Priority, Task, TaskStatus } from "@/types";
 import { PRIORITY_LABEL } from "@/types";
@@ -35,6 +36,7 @@ export function TaskTableRow({ task }: { task: Task }) {
   const projects = useAppStore((s) => s.projects);
 
   const [title, setTitle] = React.useState(task.title);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
   React.useEffect(() => setTitle(task.title), [task.title]);
   const debouncedUpdateTitle = useDebouncedCallback((value: string) => {
     if (!value.trim()) return;
@@ -107,8 +109,9 @@ export function TaskTableRow({ task }: { task: Task }) {
           />
           <Link
             href={`/tasks/${task.id}`}
-            className="shrink-0 text-muted-foreground hover:text-foreground"
+            className="shrink-0 rounded text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             title="詳細を開く"
+            aria-label="タスクの詳細を開く"
           >
             <ExternalLink className="size-3.5" />
           </Link>
@@ -185,7 +188,7 @@ export function TaskTableRow({ task }: { task: Task }) {
       <TableCell className="text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="size-7">
+            <Button variant="ghost" size="icon" className="size-7" aria-label="その他の操作">
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -199,15 +202,26 @@ export function TaskTableRow({ task }: { task: Task }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-red-600 focus:text-red-600 dark:text-red-400"
-              onSelect={() => {
-                removeTask(task.id);
-                toast("タスクを削除しました");
+              onSelect={(e) => {
+                e.preventDefault();
+                setConfirmDeleteOpen(true);
               }}
             >
               <Trash2 className="size-4" /> 削除
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <ConfirmDeleteDialog
+          open={confirmDeleteOpen}
+          onOpenChange={setConfirmDeleteOpen}
+          title="タスクを削除しますか？"
+          description={`「${task.title}」を削除します。この操作は取り消せません。`}
+          onConfirm={() => {
+            removeTask(task.id);
+            toast("タスクを削除しました");
+            setConfirmDeleteOpen(false);
+          }}
+        />
       </TableCell>
     </TableRow>
   );

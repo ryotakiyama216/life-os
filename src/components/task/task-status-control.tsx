@@ -14,8 +14,7 @@ import { TASK_STATUS_LABEL } from "@/types";
 
 const TASK_STATUS_STYLE: Record<TaskStatus, string> = {
   todo: "border-border bg-muted text-muted-foreground",
-  in_progress:
-    "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-400",
+  in_progress: "border-border bg-muted font-medium text-foreground",
   done: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-400",
   waiting:
     "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-400",
@@ -36,7 +35,11 @@ export function TaskStatusControl({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button type="button" className="-m-1.5 shrink-0 p-1.5">
+        <button
+          type="button"
+          className="-m-1.5 shrink-0 rounded p-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label={`状態: ${TASK_STATUS_LABEL[status]}（変更する）`}
+        >
           <Badge
             variant="outline"
             className={cn("cursor-pointer font-normal", TASK_STATUS_STYLE[status], className)}

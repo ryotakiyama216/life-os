@@ -36,11 +36,12 @@ export default function GoalsPage() {
       <PageHeader
         title="目標"
         description="今年、達成したいことを棚卸しする"
+        count={filtered.length}
         action={
           <GoalFormDialog
             trigger={
               <Button size="sm" className="gap-1.5">
-                <Plus className="size-4" />
+                <Plus className="size-3.5" />
                 目標を追加
               </Button>
             }

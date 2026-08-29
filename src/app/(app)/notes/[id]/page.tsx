@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/empty-state";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { useAppStore } from "@/store/useAppStore";
 import { useDebouncedCallback } from "@/lib/use-debounced-callback";
 
@@ -22,6 +23,7 @@ export default function NoteDetailPage({ params }: { params: { id: string } }) {
   const projects = useAppStore((s) => s.projects);
   const updateNote = useAppStore((s) => s.updateNote);
   const removeNote = useAppStore((s) => s.removeNote);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
 
   const [title, setTitle] = React.useState(note?.title ?? "");
   const [content, setContent] = React.useState(note?.content ?? "");
@@ -46,27 +48,36 @@ export default function NoteDetailPage({ params }: { params: { id: string } }) {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" className="gap-1.5 px-2" onClick={() => router.push("/notes")}>
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-3.5" />
           メモ一覧へ
         </Button>
         <Button
           variant="outline"
           size="sm"
           className="gap-1.5 text-red-600 hover:text-red-600"
-          onClick={async () => {
-            try {
-              await removeNote(note.id);
-              toast("メモを削除しました");
-              router.push("/notes");
-            } catch {
-              // ストア側でtoast.errorを表示済み
-            }
-          }}
+          onClick={() => setConfirmDeleteOpen(true)}
         >
           <Trash2 className="size-3.5" />
           削除
         </Button>
       </div>
+      <ConfirmDeleteDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="メモを削除しますか？"
+        description={`「${note.title || "無題のメモ"}」を削除します。この操作は取り消せません。`}
+        onConfirm={async () => {
+          try {
+            await removeNote(note.id);
+            toast("メモを削除しました");
+            router.push("/notes");
+          } catch {
+            // ストア側でtoast.errorを表示済み
+          } finally {
+            setConfirmDeleteOpen(false);
+          }
+        }}
+      />
 
       <Input
         value={title}

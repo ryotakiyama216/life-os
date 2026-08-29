@@ -80,11 +80,12 @@ export default function TasksPage() {
       <PageHeader
         title="タスク"
         description="すべてのタスクを状態・優先度・タグ・期限・目標/プロジェクトで絞り込み"
+        count={filtered.length}
         action={
           <TaskFormDialog
             trigger={
               <Button size="sm" className="gap-1.5">
-                <Plus className="size-4" />
+                <Plus className="size-3.5" />
                 タスクを追加
               </Button>
             }
@@ -140,7 +141,14 @@ export default function TasksPage() {
             <SelectItem value="createdAt">作成日順</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline" size="icon" onClick={() => setSortAsc((v) => !v)} title="昇順/降順" className="shrink-0">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setSortAsc((v) => !v)}
+          title="昇順/降順"
+          aria-label="昇順/降順を切り替え"
+          className="shrink-0"
+        >
           <ArrowDownUp className="size-4" />
         </Button>
       </div>

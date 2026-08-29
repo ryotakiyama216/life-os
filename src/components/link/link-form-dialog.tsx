@@ -42,6 +42,8 @@ export function LinkFormDialog({
   const [url, setUrl] = React.useState(link?.url ?? "");
   const [category, setCategory] = React.useState(link?.category ?? "");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [titleTouched, setTitleTouched] = React.useState(false);
+  const [urlTouched, setUrlTouched] = React.useState(false);
 
   React.useEffect(() => {
     if (!open) return;
@@ -49,6 +51,8 @@ export function LinkFormDialog({
     setUrl(link?.url ?? "");
     setCategory(link?.category ?? "");
     setIsSubmitting(false);
+    setTitleTouched(false);
+    setUrlTouched(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, link]);
 
@@ -57,7 +61,12 @@ export function LinkFormDialog({
   );
 
   async function handleSubmit() {
-    if (!title.trim() || !url.trim() || isSubmitting) return;
+    if (!title.trim() || !url.trim()) {
+      setTitleTouched(true);
+      setUrlTouched(true);
+      return;
+    }
+    if (isSubmitting) return;
     const payload = {
       title: title.trim(),
       url: url.trim(),
@@ -89,24 +98,36 @@ export function LinkFormDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="link-title">タイトル</Label>
+            <Label htmlFor="link-title">
+              タイトル <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="link-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => setTitleTouched(true)}
               placeholder="例: 週次定例Meet"
               autoFocus
             />
+            {titleTouched && !title.trim() && (
+              <p className="text-xs text-red-600 dark:text-red-400">タイトルを入力してください</p>
+            )}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="link-url">URL</Label>
+            <Label htmlFor="link-url">
+              URL <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="link-url"
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
+              onBlur={() => setUrlTouched(true)}
               placeholder="https://..."
             />
+            {urlTouched && !url.trim() && (
+              <p className="text-xs text-red-600 dark:text-red-400">URLを入力してください</p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="link-category">カテゴリ</Label>

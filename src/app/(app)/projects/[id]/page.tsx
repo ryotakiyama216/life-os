@@ -12,6 +12,8 @@ import { EmptyState } from "@/components/empty-state";
 import { ProjectFormDialog } from "@/components/project/project-form-dialog";
 import { TaskFormDialog } from "@/components/task/task-form-dialog";
 import { TaskItem } from "@/components/task/task-item";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { useAppStore } from "@/store/useAppStore";
 import { formatDateJP } from "@/lib/date";
 import { FolderKanban } from "lucide-react";
@@ -25,6 +27,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
   );
   const allTasks = useAppStore((s) => s.tasks);
   const removeProject = useAppStore((s) => s.removeProject);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
 
   const tasks = allTasks.filter((t) => t.projectId === params.id);
 
@@ -35,8 +38,15 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
   return (
     <div className="space-y-6">
       <div>
+        <Breadcrumb
+          items={[
+            { label: "プロジェクト一覧", href: "/projects" },
+            ...(goal ? [{ label: goal.title, href: `/goals/${goal.id}` }] : []),
+            { label: project.title },
+          ]}
+        />
         <Button variant="ghost" size="sm" className="mb-3 gap-1.5 px-2" onClick={() => router.push("/projects")}>
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-3.5" />
           プロジェクト一覧へ
         </Button>
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -69,15 +79,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
               variant="outline"
               size="sm"
               className="gap-1.5 text-red-600 hover:text-red-600"
-              onClick={async () => {
-                try {
-                  await removeProject(project.id);
-                  toast("プロジェクトを削除しました");
-                  router.push("/projects");
-                } catch {
-                  // ストア側でtoast.errorを表示済み
-                }
-              }}
+              onClick={() => setConfirmDeleteOpen(true)}
             >
               <Trash2 className="size-3.5" />
               削除
@@ -85,6 +87,23 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
           </div>
         </div>
       </div>
+      <ConfirmDeleteDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="プロジェクトを削除しますか？"
+        description={`「${project.title}」を削除します。関連するタスクの紐付けも解除されます。この操作は取り消せません。`}
+        onConfirm={async () => {
+          try {
+            await removeProject(project.id);
+            toast("プロジェクトを削除しました");
+            router.push("/projects");
+          } catch {
+            // ストア側でtoast.errorを表示済み
+          } finally {
+            setConfirmDeleteOpen(false);
+          }
+        }}
+      />
 
       <MarkdownContent content={project.description} />
 

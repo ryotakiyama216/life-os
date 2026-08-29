@@ -6,6 +6,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { HabitFormDialog } from "@/components/habit/habit-form-dialog";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { useAppStore } from "@/store/useAppStore";
 import type { Habit } from "@/types";
 
@@ -18,6 +19,7 @@ function frequencyLabel(habit: Habit): string {
 
 export function HabitRow({ habit }: { habit: Habit }) {
   const [editOpen, setEditOpen] = React.useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
   const goal = useAppStore((s) => (habit.goalId ? s.goals.find((g) => g.id === habit.goalId) : undefined));
   const removeHabit = useAppStore((s) => s.removeHabit);
 
@@ -40,15 +42,24 @@ export function HabitRow({ habit }: { habit: Habit }) {
           variant="ghost"
           size="icon"
           className="size-8 text-muted-foreground"
-          onClick={() => {
-            removeHabit(habit.id);
-            toast("習慣を削除しました");
-          }}
+          aria-label="習慣を削除"
+          onClick={() => setConfirmDeleteOpen(true)}
         >
           <Trash2 className="size-4" />
         </Button>
       </div>
       <HabitFormDialog habit={habit} open={editOpen} onOpenChange={setEditOpen} />
+      <ConfirmDeleteDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="習慣を削除しますか？"
+        description={`「${habit.title}」を削除します。この操作は取り消せません。`}
+        onConfirm={() => {
+          removeHabit(habit.id);
+          toast("習慣を削除しました");
+          setConfirmDeleteOpen(false);
+        }}
+      />
     </Card>
   );
 }

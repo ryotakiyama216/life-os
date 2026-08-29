@@ -27,9 +27,10 @@ export default function NotesPage() {
       <PageHeader
         title="ページ・メモ"
         description="Markdownで自由に書けるメモ・ページ"
+        count={notes.length}
         action={
           <Button size="sm" className="gap-1.5" onClick={handleCreate}>
-            <Plus className="size-4" />
+            <Plus className="size-3.5" />
             新規メモ
           </Button>
         }
