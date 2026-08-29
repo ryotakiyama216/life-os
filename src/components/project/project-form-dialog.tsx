@@ -53,6 +53,7 @@ export function ProjectFormDialog({
   const [priority, setPriority] = React.useState<Priority>(project?.priority ?? "P3");
   const [goalId, setGoalId] = React.useState(project?.goalId ?? defaultGoalId ?? NONE);
   const [targetDate, setTargetDate] = React.useState(project?.targetDate ?? "");
+  const [titleTouched, setTitleTouched] = React.useState(false);
 
   React.useEffect(() => {
     if (!open) return;
@@ -62,11 +63,15 @@ export function ProjectFormDialog({
     setPriority(project?.priority ?? "P3");
     setGoalId(project?.goalId ?? defaultGoalId ?? NONE);
     setTargetDate(project?.targetDate ?? "");
+    setTitleTouched(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, project]);
 
   async function handleSubmit() {
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      setTitleTouched(true);
+      return;
+    }
     const payload = {
       title: title.trim(),
       description,
@@ -100,14 +105,20 @@ export function ProjectFormDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="project-title">タイトル</Label>
+            <Label htmlFor="project-title">
+              タイトル <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="project-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => setTitleTouched(true)}
               placeholder="目標を達成するための取り組み"
               autoFocus
             />
+            {titleTouched && !title.trim() && (
+              <p className="text-xs text-red-600 dark:text-red-400">タイトルを入力してください</p>
+            )}
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">

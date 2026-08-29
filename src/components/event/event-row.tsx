@@ -6,12 +6,14 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EventFormDialog } from "@/components/event/event-form-dialog";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { useAppStore } from "@/store/useAppStore";
 import { formatDateFullJP } from "@/lib/date";
 import type { Event } from "@/types";
 
 export function EventRow({ event }: { event: Event }) {
   const [editOpen, setEditOpen] = React.useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
   const removeEvent = useAppStore((s) => s.removeEvent);
 
   return (
@@ -34,15 +36,24 @@ export function EventRow({ event }: { event: Event }) {
           variant="ghost"
           size="icon"
           className="size-8 text-muted-foreground"
-          onClick={() => {
-            removeEvent(event.id);
-            toast("予定を削除しました");
-          }}
+          aria-label="予定を削除"
+          onClick={() => setConfirmDeleteOpen(true)}
         >
           <Trash2 className="size-4" />
         </Button>
       </div>
       <EventFormDialog event={event} open={editOpen} onOpenChange={setEditOpen} />
+      <ConfirmDeleteDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="予定を削除しますか？"
+        description={`「${event.title}」を削除します。この操作は取り消せません。`}
+        onConfirm={() => {
+          removeEvent(event.id);
+          toast("予定を削除しました");
+          setConfirmDeleteOpen(false);
+        }}
+      />
     </Card>
   );
 }

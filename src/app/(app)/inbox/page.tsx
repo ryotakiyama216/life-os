@@ -15,6 +15,7 @@ export default function InboxPage() {
       <PageHeader
         title="Inbox"
         description="思いついたことをまず全部ここに。仕分けてから次の場所へ動かしましょう"
+        count={items.length}
         action={<QuickCaptureDialog />}
       />
       {items.length === 0 ? (

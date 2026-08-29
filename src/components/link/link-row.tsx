@@ -6,11 +6,13 @@ import { ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LinkFormDialog } from "@/components/link/link-form-dialog";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { useAppStore } from "@/store/useAppStore";
 import type { LinkItem } from "@/types";
 
 export function LinkRow({ link }: { link: LinkItem }) {
   const [editOpen, setEditOpen] = React.useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
   const removeLink = useAppStore((s) => s.removeLink);
 
   return (
@@ -36,19 +38,29 @@ export function LinkRow({ link }: { link: LinkItem }) {
           variant="ghost"
           size="icon"
           className="size-8 text-muted-foreground"
-          onClick={async () => {
-            try {
-              await removeLink(link.id);
-              toast("リンクを削除しました");
-            } catch {
-              // ストア側でtoast.errorを表示済み
-            }
-          }}
+          aria-label="リンクを削除"
+          onClick={() => setConfirmDeleteOpen(true)}
         >
           <Trash2 className="size-4" />
         </Button>
       </div>
       <LinkFormDialog link={link} open={editOpen} onOpenChange={setEditOpen} />
+      <ConfirmDeleteDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="リンクを削除しますか？"
+        description={`「${link.title}」を削除します。この操作は取り消せません。`}
+        onConfirm={async () => {
+          try {
+            await removeLink(link.id);
+            toast("リンクを削除しました");
+          } catch {
+            // ストア側でtoast.errorを表示済み
+          } finally {
+            setConfirmDeleteOpen(false);
+          }
+        }}
+      />
     </Card>
   );
 }

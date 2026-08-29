@@ -34,7 +34,7 @@ export function QuickCaptureDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" className="gap-1.5">
-          <Plus className="size-4" />
+          <Plus className="size-3.5" />
           クイックキャプチャ
         </Button>
       </DialogTrigger>

@@ -17,11 +17,12 @@ export default function HabitsPage() {
       <PageHeader
         title="習慣"
         description="日々の積み重ねで目標に近づく。今日の習慣はTodayページに自動で表示されます"
+        count={habits.length}
         action={
           <HabitFormDialog
             trigger={
               <Button size="sm" className="gap-1.5">
-                <Plus className="size-4" />
+                <Plus className="size-3.5" />
                 習慣を追加
               </Button>
             }

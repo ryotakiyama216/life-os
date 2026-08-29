@@ -42,6 +42,7 @@ export function MorningSchedule() {
             value={time}
             onChange={(e) => setTime(e.target.value)}
             className="w-24 shrink-0"
+            aria-label="時刻"
           />
           <Input
             placeholder="例: 運動、読書、朝食..."
@@ -51,8 +52,9 @@ export function MorningSchedule() {
               // IME変換確定のEnterで誤送信しないよう、変換中は無視する
               if (e.key === "Enter" && !e.nativeEvent.isComposing) handleAdd();
             }}
+            aria-label="やること"
           />
-          <Button variant="outline" size="icon" onClick={handleAdd} disabled={!title.trim()}>
+          <Button variant="outline" size="icon" onClick={handleAdd} disabled={!title.trim()} aria-label="時間割ブロックを追加">
             <Plus className="size-4" />
           </Button>
         </div>
@@ -67,7 +69,11 @@ export function MorningSchedule() {
                 key={b.id}
                 className="flex items-center gap-2.5 rounded-md border px-2.5 py-1.5"
               >
-                <Checkbox checked={b.done} onCheckedChange={() => toggleMorningBlockDone(b.id)} />
+                <Checkbox
+                  checked={b.done}
+                  onCheckedChange={() => toggleMorningBlockDone(b.id)}
+                  aria-label={b.done ? `「${b.title}」を未完了に戻す` : `「${b.title}」を完了にする`}
+                />
                 <span className="w-12 shrink-0 text-xs tabular-nums text-muted-foreground">
                   {b.time}
                 </span>
@@ -79,6 +85,7 @@ export function MorningSchedule() {
                   size="icon"
                   className="size-6 shrink-0"
                   onClick={() => removeMorningBlock(b.id)}
+                  aria-label={`「${b.title}」を削除`}
                 >
                   <Trash2 className="size-3.5" />
                 </Button>

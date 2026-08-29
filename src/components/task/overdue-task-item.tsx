@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -7,10 +8,12 @@ import { CalendarClock, CalendarPlus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PriorityBadge } from "@/components/priority-badge";
 import { TaskStatusControl } from "@/components/task/task-status-control";
+import { OverdueLabel } from "@/components/overdue-label";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { useAppStore } from "@/store/useAppStore";
 import type { Task, TaskStatus } from "@/types";
 import { cn } from "@/lib/utils";
-import { formatDateJP, isOverdue, isToday, overdueLabel, todayISO } from "@/lib/date";
+import { formatDateJP, isOverdue, isToday, todayISO } from "@/lib/date";
 import { getPostponeToTomorrowPatch } from "@/lib/priority";
 
 /** 期限切れタスク専用: 「今日やる/明日に延期/削除」を隠さずボタンで直接表示する */
@@ -23,6 +26,7 @@ export function OverdueTaskItem({ task }: { task: Task }) {
   const project = useAppStore((s) =>
     task.projectId ? s.projects.find((p) => p.id === task.projectId) : undefined
   );
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
 
   const scheduledToday = isToday(task.scheduledDate);
   const dueOverdue = Boolean(task.dueDate && isOverdue(task.dueDate));
@@ -47,31 +51,24 @@ export function OverdueTaskItem({ task }: { task: Task }) {
               {task.title}
             </Link>
             <PriorityBadge priority={task.priority} />
-            {task.dueDate && (
+            {task.dueDate && (dueOverdue ? (
+              <OverdueLabel date={task.dueDate} label="期限 " />
+            ) : (
+              <span className="text-xs text-muted-foreground">期限 {formatDateJP(task.dueDate)}</span>
+            ))}
+            {task.scheduledDate && (scheduledOverdue ? (
+              <OverdueLabel date={task.scheduledDate} label="予定 " suffix="未完了" />
+            ) : (
               <span
                 className={cn(
                   "text-xs",
-                  dueOverdue ? "font-medium text-red-600 dark:text-red-400" : "text-muted-foreground"
-                )}
-              >
-                期限 {formatDateJP(task.dueDate)}
-                {dueOverdue && `（${overdueLabel(task.dueDate)}）`}
-              </span>
-            )}
-            {task.scheduledDate && (
-              <span
-                className={cn(
-                  "text-xs",
-                  scheduledOverdue || scheduledToday
-                    ? "font-medium text-red-600 dark:text-red-400"
-                    : "text-muted-foreground"
+                  scheduledToday ? "font-medium text-blue-600 dark:text-blue-400" : "text-muted-foreground"
                 )}
               >
                 予定 {formatDateJP(task.scheduledDate)}
-                {scheduledOverdue && `（${overdueLabel(task.scheduledDate)}・未完了）`}
-                {!scheduledOverdue && scheduledToday && "（今日）"}
+                {scheduledToday && "（今日）"}
               </span>
-            )}
+            ))}
             {(project || goal) && (
               <span className="text-xs text-muted-foreground">{project ? project.title : goal?.title}</span>
             )}
@@ -121,15 +118,23 @@ export function OverdueTaskItem({ task }: { task: Task }) {
           size="sm"
           variant="outline"
           className={cn("gap-1.5 text-red-600 hover:text-red-600")}
-          onClick={() => {
-            removeTask(task.id);
-            toast("タスクを削除しました");
-          }}
+          onClick={() => setConfirmDeleteOpen(true)}
         >
           <Trash2 className="size-3.5" />
           削除
         </Button>
       </div>
+      <ConfirmDeleteDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="タスクを削除しますか？"
+        description={`「${task.title}」を削除します。この操作は取り消せません。`}
+        onConfirm={() => {
+          removeTask(task.id);
+          toast("タスクを削除しました");
+          setConfirmDeleteOpen(false);
+        }}
+      />
     </div>
   );
 }

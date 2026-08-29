@@ -17,6 +17,7 @@ import { TaskFormDialog } from "@/components/task/task-form-dialog";
 import { GoalFormDialog } from "@/components/goal/goal-form-dialog";
 import { ProjectFormDialog } from "@/components/project/project-form-dialog";
 import { HabitFormDialog } from "@/components/habit/habit-form-dialog";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { useAppStore } from "@/store/useAppStore";
 import type { InboxItem } from "@/types";
 import { formatDateTimeJP } from "@/lib/date";
@@ -25,6 +26,7 @@ type DialogKind = "task" | "goal" | "project" | "habit" | null;
 
 export function InboxItemRow({ item }: { item: InboxItem }) {
   const [dialogKind, setDialogKind] = React.useState<DialogKind>(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
   const removeInboxItem = useAppStore((s) => s.removeInboxItem);
   const addNote = useAppStore((s) => s.addNote);
   const addTask = useAppStore((s) => s.addTask);
@@ -93,18 +95,28 @@ export function InboxItemRow({ item }: { item: InboxItem }) {
           variant="ghost"
           size="icon"
           className="size-8 text-muted-foreground"
-          onClick={async () => {
-            try {
-              await removeInboxItem(item.id);
-              toast("削除しました");
-            } catch {
-              // ストア側でtoast.errorを表示済み
-            }
-          }}
+          aria-label="Inboxアイテムを削除"
+          onClick={() => setConfirmDeleteOpen(true)}
         >
           <Trash2 className="size-4" />
         </Button>
       </div>
+      <ConfirmDeleteDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="削除しますか？"
+        description="このInboxアイテムを削除します。この操作は取り消せません。"
+        onConfirm={async () => {
+          try {
+            await removeInboxItem(item.id);
+            toast("削除しました");
+          } catch {
+            // ストア側でtoast.errorを表示済み
+          } finally {
+            setConfirmDeleteOpen(false);
+          }
+        }}
+      />
 
       <TaskFormDialog
         open={dialogKind === "task"}

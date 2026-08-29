@@ -3,7 +3,8 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, ListTodo, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, ExternalLink, ListTodo, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/empty-state";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { useAppStore } from "@/store/useAppStore";
 import { useDebouncedCallback } from "@/lib/use-debounced-callback";
 import { todayISO } from "@/lib/date";
@@ -35,6 +38,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const [tagsInput, setTagsInput] = React.useState(task?.tags.join(", ") ?? "");
   const [dueDate, setDueDate] = React.useState(task?.dueDate ?? "");
   const [scheduledDate, setScheduledDate] = React.useState(task?.scheduledDate ?? "");
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
 
   React.useEffect(() => {
     setTitle(task?.title ?? "");
@@ -105,32 +109,51 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     ? projects.find((p) => p.id === task.projectId)?.goalId
     : task.goalId;
   const projectOptions = getProjectSelectOptions(projects, effectiveGoalId);
+  const effectiveGoal = effectiveGoalId ? goals.find((g) => g.id === effectiveGoalId) : undefined;
+  const project = task.projectId ? projects.find((p) => p.id === task.projectId) : undefined;
 
   return (
     <div className="space-y-5">
+      <Breadcrumb
+        items={[
+          { label: "タスク一覧", href: "/tasks" },
+          ...(effectiveGoal ? [{ label: effectiveGoal.title, href: `/goals/${effectiveGoal.id}` }] : []),
+          ...(project ? [{ label: project.title, href: `/projects/${project.id}` }] : []),
+          { label: task.title || "タスク" },
+        ]}
+      />
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" className="gap-1.5 px-2" onClick={() => router.push("/tasks")}>
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-3.5" />
           タスク一覧へ
         </Button>
         <Button
           variant="outline"
           size="sm"
           className="gap-1.5 text-red-600 hover:text-red-600"
-          onClick={async () => {
-            try {
-              await removeTask(task.id);
-              toast("タスクを削除しました");
-              router.push("/tasks");
-            } catch {
-              // ストア側でtoast.errorを表示済み
-            }
-          }}
+          onClick={() => setConfirmDeleteOpen(true)}
         >
           <Trash2 className="size-3.5" />
           削除
         </Button>
       </div>
+      <ConfirmDeleteDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="タスクを削除しますか？"
+        description={`「${task.title}」を削除します。この操作は取り消せません。`}
+        onConfirm={async () => {
+          try {
+            await removeTask(task.id);
+            toast("タスクを削除しました");
+            router.push("/tasks");
+          } catch {
+            // ストア側でtoast.errorを表示済み
+          } finally {
+            setConfirmDeleteOpen(false);
+          }
+        }}
+      />
 
       <div className="flex items-center gap-2.5">
         <Checkbox
@@ -229,7 +252,17 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
 
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="space-y-1.5">
-          <Label>目標</Label>
+          <div className="flex items-center justify-between">
+            <Label>目標</Label>
+            {effectiveGoal && (
+              <Link
+                href={`/goals/${effectiveGoal.id}`}
+                className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground hover:underline"
+              >
+                開く <ExternalLink className="size-3" />
+              </Link>
+            )}
+          </div>
           <Select
             value={effectiveGoalId ?? NONE}
             onValueChange={(v) => updateTask(task.id, { goalId: v === NONE ? undefined : v })}
@@ -248,7 +281,17 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label>プロジェクト</Label>
+          <div className="flex items-center justify-between">
+            <Label>プロジェクト</Label>
+            {project && (
+              <Link
+                href={`/projects/${project.id}`}
+                className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground hover:underline"
+              >
+                開く <ExternalLink className="size-3" />
+              </Link>
+            )}
+          </div>
           <Select value={task.projectId ?? NONE} onValueChange={handleProjectChange}>
             <SelectTrigger>
               <SelectValue placeholder="なし" />

@@ -12,7 +12,10 @@ export function NoteCard({ note }: { note: Note }) {
   const hiddenTagCount = note.tags.length - visibleTags.length;
 
   return (
-    <Link href={`/notes/${note.id}`}>
+    <Link
+      href={`/notes/${note.id}`}
+      className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
       <Card className="flex h-full flex-col gap-2 p-4 transition-colors hover:bg-secondary/40">
         <div className="flex items-start gap-2">
           <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground" />

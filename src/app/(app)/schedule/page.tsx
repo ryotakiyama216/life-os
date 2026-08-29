@@ -24,11 +24,12 @@ export default function SchedulePage() {
       <PageHeader
         title="予定"
         description="通院や美容室など、不定期に発生する単発の予定を管理します"
+        count={events.length}
         action={
           <EventFormDialog
             trigger={
               <Button size="sm" className="gap-1.5">
-                <Plus className="size-4" />
+                <Plus className="size-3.5" />
                 予定を追加
               </Button>
             }

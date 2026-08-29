@@ -17,9 +17,10 @@ export function GoalCard({ goal }: { goal: Goal }) {
     (t) => t.goalId === goal.id || projects.find((p) => p.id === t.projectId)?.goalId === goal.id
   );
   const taskStats = { total: relatedTasks.length, done: relatedTasks.filter((t) => t.status === "done").length };
+  const progress = taskStats.total > 0 ? (taskStats.done / taskStats.total) * 100 : 0;
 
   return (
-    <Link href={`/goals/${goal.id}`}>
+    <Link href={`/goals/${goal.id}`} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
       <Card className="space-y-2 p-4 transition-colors hover:bg-secondary/40">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-sm font-medium">{goal.title}</h3>
@@ -33,6 +34,11 @@ export function GoalCard({ goal }: { goal: Goal }) {
             タスク {taskStats.done}/{taskStats.total}
           </span>
         </div>
+        {taskStats.total > 0 && (
+          <div className="h-1 w-full overflow-hidden rounded bg-muted">
+            <div className="h-full rounded bg-primary" style={{ width: `${progress}%` }} />
+          </div>
+        )}
       </Card>
     </Link>
   );

@@ -54,6 +54,7 @@ export function HabitFormDialog({
     habit?.frequency.type !== "daily" && habit?.frequency ? (habit.frequency as { days: number[] }).days : []
   );
   const [timeOfDay, setTimeOfDay] = React.useState(habit?.timeOfDay ?? "");
+  const [titleTouched, setTitleTouched] = React.useState(false);
 
   React.useEffect(() => {
     if (!open) return;
@@ -62,6 +63,7 @@ export function HabitFormDialog({
     setFreqType(habit?.frequency.type ?? "daily");
     setDays(habit?.frequency.type !== "daily" && habit?.frequency ? (habit.frequency as { days: number[] }).days : []);
     setTimeOfDay(habit?.timeOfDay ?? "");
+    setTitleTouched(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, habit]);
 
@@ -70,7 +72,10 @@ export function HabitFormDialog({
   }
 
   async function handleSubmit() {
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      setTitleTouched(true);
+      return;
+    }
     const frequency: HabitFrequency =
       freqType === "daily" ? { type: "daily" } : { type: freqType, days };
     const payload = {
@@ -105,14 +110,20 @@ export function HabitFormDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="habit-title">タイトル</Label>
+            <Label htmlFor="habit-title">
+              タイトル <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="habit-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => setTitleTouched(true)}
               placeholder="例: 運動する、日記を書く"
               autoFocus
             />
+            {titleTouched && !title.trim() && (
+              <p className="text-xs text-red-600 dark:text-red-400">タイトルを入力してください</p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label>紐づく目標</Label>
@@ -150,8 +161,10 @@ export function HabitFormDialog({
                   type="button"
                   key={i}
                   onClick={() => toggleDay(i)}
+                  aria-pressed={days.includes(i)}
+                  aria-label={`${label}曜日`}
                   className={cn(
-                    "size-9 rounded-md border text-sm",
+                    "size-9 rounded-md border text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     days.includes(i)
                       ? "border-foreground bg-foreground text-background"
                       : "text-muted-foreground hover:bg-secondary"

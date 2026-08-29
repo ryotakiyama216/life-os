@@ -39,7 +39,11 @@ export function HabitsToday() {
             return (
               <li key={h.id} className="flex items-center gap-2.5 rounded-md border px-2.5 py-1.5">
                 <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 py-1">
-                  <Checkbox checked={done} onCheckedChange={() => toggleHabitLog(h.id, today)} />
+                  <Checkbox
+                    checked={done}
+                    onCheckedChange={() => toggleHabitLog(h.id, today)}
+                    aria-label={done ? `「${h.title}」を未完了に戻す` : `「${h.title}」を完了にする`}
+                  />
                   <div className="min-w-0">
                     <span className={cn("text-sm", done && "text-muted-foreground line-through")}>
                       {h.title}

@@ -14,6 +14,8 @@ import { ProjectFormDialog } from "@/components/project/project-form-dialog";
 import { ProjectCard } from "@/components/project/project-card";
 import { TaskFormDialog } from "@/components/task/task-form-dialog";
 import { TaskItem } from "@/components/task/task-item";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { useAppStore } from "@/store/useAppStore";
 import { formatDateJP } from "@/lib/date";
 import { FolderKanban, Target } from "lucide-react";
@@ -24,6 +26,7 @@ export default function GoalDetailPage({ params }: { params: { id: string } }) {
   const allProjects = useAppStore((s) => s.projects);
   const allTasks = useAppStore((s) => s.tasks);
   const removeGoal = useAppStore((s) => s.removeGoal);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
 
   const projects = allProjects.filter((p) => p.goalId === params.id);
   const directTasks = allTasks.filter((t) => t.goalId === params.id && !t.projectId);
@@ -37,8 +40,9 @@ export default function GoalDetailPage({ params }: { params: { id: string } }) {
   return (
     <div className="space-y-6">
       <div>
+        <Breadcrumb items={[{ label: "目標一覧", href: "/goals" }, { label: goal.title }]} />
         <Button variant="ghost" size="sm" className="mb-3 gap-1.5 px-2" onClick={() => router.push("/goals")}>
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-3.5" />
           目標一覧へ
         </Button>
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -66,15 +70,7 @@ export default function GoalDetailPage({ params }: { params: { id: string } }) {
               variant="outline"
               size="sm"
               className="gap-1.5 text-red-600 hover:text-red-600"
-              onClick={async () => {
-                try {
-                  await removeGoal(goal.id);
-                  toast("目標を削除しました");
-                  router.push("/goals");
-                } catch {
-                  // ストア側でtoast.errorを表示済み
-                }
-              }}
+              onClick={() => setConfirmDeleteOpen(true)}
             >
               <Trash2 className="size-3.5" />
               削除
@@ -82,6 +78,23 @@ export default function GoalDetailPage({ params }: { params: { id: string } }) {
           </div>
         </div>
       </div>
+      <ConfirmDeleteDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="目標を削除しますか？"
+        description={`「${goal.title}」を削除します。関連するプロジェクト・タスクの紐付けも解除されます。この操作は取り消せません。`}
+        onConfirm={async () => {
+          try {
+            await removeGoal(goal.id);
+            toast("目標を削除しました");
+            router.push("/goals");
+          } catch {
+            // ストア側でtoast.errorを表示済み
+          } finally {
+            setConfirmDeleteOpen(false);
+          }
+        }}
+      />
 
       <MarkdownContent content={goal.description} />
 

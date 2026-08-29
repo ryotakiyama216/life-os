@@ -47,6 +47,7 @@ export function GoalFormDialog({
   const [status, setStatus] = React.useState<GoalStatus>(goal?.status ?? "active");
   const [priority, setPriority] = React.useState<Priority>(goal?.priority ?? "P2");
   const [targetDate, setTargetDate] = React.useState(goal?.targetDate ?? "");
+  const [titleTouched, setTitleTouched] = React.useState(false);
 
   React.useEffect(() => {
     if (!open) return;
@@ -55,11 +56,15 @@ export function GoalFormDialog({
     setStatus(goal?.status ?? "active");
     setPriority(goal?.priority ?? "P2");
     setTargetDate(goal?.targetDate ?? "");
+    setTitleTouched(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, goal]);
 
   async function handleSubmit() {
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      setTitleTouched(true);
+      return;
+    }
     try {
       if (isEdit) {
         await updateGoal(goal.id, {
@@ -97,14 +102,20 @@ export function GoalFormDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="goal-title">タイトル</Label>
+            <Label htmlFor="goal-title">
+              タイトル <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="goal-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => setTitleTouched(true)}
               placeholder="今年、何を達成したい？"
               autoFocus
             />
+            {titleTouched && !title.trim() && (
+              <p className="text-xs text-red-600 dark:text-red-400">タイトルを入力してください</p>
+            )}
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {isEdit && (

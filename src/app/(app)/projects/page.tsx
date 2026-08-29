@@ -36,11 +36,12 @@ export default function ProjectsPage() {
       <PageHeader
         title="プロジェクト"
         description="目標を達成するための取り組み"
+        count={filtered.length}
         action={
           <ProjectFormDialog
             trigger={
               <Button size="sm" className="gap-1.5">
-                <Plus className="size-4" />
+                <Plus className="size-3.5" />
                 プロジェクトを追加
               </Button>
             }

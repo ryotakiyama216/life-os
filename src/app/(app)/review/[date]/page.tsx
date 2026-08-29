@@ -27,7 +27,7 @@ export default function ReviewDetailPage({ params }: { params: { date: string } 
     <div className="space-y-6">
       <div>
         <Button variant="ghost" size="sm" className="mb-3 gap-1.5 px-2" onClick={() => router.push("/review")}>
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-3.5" />
           振り返り一覧へ
         </Button>
         <h1 className="text-xl font-semibold tracking-tight">{formatDateFullJP(params.date)}</h1>

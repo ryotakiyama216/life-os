@@ -26,11 +26,12 @@ export default function LinksPage() {
       <PageHeader
         title="リンク"
         description="メール・Meetなど、仕事でよく開くURLをまとめて管理する"
+        count={links.length}
         action={
           <LinkFormDialog
             trigger={
               <Button size="sm" className="gap-1.5">
-                <Plus className="size-4" />
+                <Plus className="size-3.5" />
                 リンクを追加
               </Button>
             }
